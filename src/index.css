@@ -1,0 +1,104 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Inter:wght@100..900&family=Pinyon+Script&display=swap');
+
+@theme {
+  --font-serif: "Cormorant Garamond", serif;
+  --font-sans: "Inter", sans-serif;
+  --font-script: "Pinyon Script", cursive;
+  
+  --color-brand-pink: #FF69B4;
+  --color-brand-brown: #3D2B1F;
+  --color-brand-blue: #4A90E2;
+  --color-brand-beige: #FDFBF7;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-beige text-brand-brown font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+.editorial-card {
+  @apply bg-white/80 backdrop-blur-sm rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-brand-brown/5 transition-all duration-500 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1;
+}
+
+.btn-primary {
+  @apply bg-brand-brown text-brand-beige px-8 py-4 rounded-2xl font-bold tracking-tight transition-all duration-300 hover:bg-brand-pink hover:text-white hover:shadow-[0_10px_20px_rgba(255,105,180,0.3)] active:scale-95;
+}
+
+.btn-secondary {
+  @apply border-2 border-brand-brown/10 text-brand-brown px-8 py-4 rounded-2xl font-bold tracking-tight transition-all duration-300 hover:border-brand-pink hover:text-brand-pink active:scale-95;
+}
+
+.glass-panel {
+  @apply bg-white/40 backdrop-blur-md border border-white/20 rounded-[2rem] shadow-xl;
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-brown via-brand-pink to-brand-brown bg-[length:200%_auto] animate-[gradient_8s_linear_infinite];
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.floating {
+  animation: floating 6s ease-in-out infinite;
+}
+
+@keyframes floating {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(1deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+.input-field {
+  @apply w-full bg-transparent border-b border-brand-brown/20 py-2 focus:border-brand-pink outline-none transition-all font-serif text-lg;
+}
+
+.label-text {
+  @apply text-xs uppercase tracking-widest text-brand-brown/60 font-sans font-semibold mb-1 block;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  body {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  @page {
+    margin: 2cm;
+  }
+}
+
+.print-only {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.hover-lift {
+  @apply transition-transform duration-300 hover:-translate-y-1;
+}
+
+.hover-glow {
+  @apply transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,105,180,0.2)];
+}
