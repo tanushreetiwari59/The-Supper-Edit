@@ -27,7 +27,7 @@
 }
 
 .btn-primary {
-  @apply bg-brand-brown text-brand-beige px-8 py-4 rounded-2xl font-bold tracking-tight transition-all duration-300 hover:bg-brand-pink hover:text-white hover:shadow-[0_10px_20px_rgba(255,105,180,0.3)] active:scale-95;
+  @apply flex items-center justify-center bg-brand-brown text-brand-beige px-8 py-4 rounded-2xl font-bold tracking-tight transition-all duration-300 hover:bg-brand-pink hover:text-white hover:shadow-[0_10px_20px_rgba(255,105,180,0.3)] active:scale-95;
 }
 
 .btn-secondary {

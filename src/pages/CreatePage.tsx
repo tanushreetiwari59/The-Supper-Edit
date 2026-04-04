@@ -79,7 +79,7 @@ export default function CreatePage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="max-w-4xl mx-auto px-8 pt-24 pb-32"
+      className="max-w-6xl mx-auto px-8 pt-24 pb-32"
     >
       <Link to="/dashboard" className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.4em] font-bold text-brand-brown/40 hover:text-brand-pink transition-colors mb-12 group">
         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
@@ -183,11 +183,11 @@ export default function CreatePage() {
 
         <div className="lg:col-span-5">
           <div className="editorial-card glass-panel sticky top-32">
-            <div className="space-y-8">
-              <div className="space-y-4">
+            <div className="space-y-6">
+              <div className="space-y-3">
                 <label className="text-xs uppercase tracking-[0.3em] font-bold text-brand-brown/40">Archetype</label>
                 <select
-                  className="w-full bg-brand-brown/5 border border-brand-brown/5 rounded-2xl px-6 py-4 text-xl font-serif italic focus:outline-none focus:ring-2 focus:ring-brand-pink/20 transition-all cursor-pointer"
+                  className="w-full bg-brand-brown/5 border border-brand-brown/5 rounded-2xl px-5 py-3 text-base font-serif italic focus:outline-none focus:ring-2 focus:ring-brand-pink/20 transition-all cursor-pointer"
                   value={formData.archetype}
                   onChange={e => setFormData({ ...formData, archetype: e.target.value })}
                 >
@@ -195,20 +195,20 @@ export default function CreatePage() {
                 </select>
               </div>
 
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 key={formData.archetype}
-                className="p-8 bg-brand-pink/5 rounded-[2.5rem] border border-brand-pink/10 relative overflow-hidden"
+                className="p-6 bg-brand-pink/5 rounded-[2rem] border border-brand-pink/10 relative overflow-hidden"
               >
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-pink/5 rounded-full blur-3xl" />
-                
-                <div className="flex justify-between items-center mb-8 relative z-10">
+
+                <div className="flex justify-between items-center mb-4 relative z-10">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="text-brand-pink" size={16} />
+                    <Sparkles className="text-brand-pink" size={14} />
                     <span className="text-[10px] uppercase tracking-[0.4em] text-brand-pink font-bold">Hosting Style</span>
                   </div>
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setIsEditingStyle(!isEditingStyle)}
                     className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/30 hover:text-brand-pink transition-colors"
@@ -217,26 +217,26 @@ export default function CreatePage() {
                   </button>
                 </div>
 
-                <h4 className="text-4xl font-serif italic mb-6 relative z-10">
+                <h4 className="text-2xl font-serif italic mb-3 relative z-10">
                   {HOST_PERSONALITIES[formData.archetype as keyof typeof HOST_PERSONALITIES].title}
                 </h4>
 
                 {isEditingStyle ? (
                   <textarea
-                    className="w-full bg-white/50 border border-brand-pink/20 rounded-2xl p-6 text-lg font-serif italic leading-relaxed text-brand-brown/70 focus:outline-none focus:ring-2 focus:ring-brand-pink/20 min-h-[150px] relative z-10 shadow-inner"
+                    className="w-full bg-white/50 border border-brand-pink/20 rounded-2xl p-4 text-sm font-serif italic leading-relaxed text-brand-brown/70 focus:outline-none focus:ring-2 focus:ring-brand-pink/20 min-h-[120px] relative z-10 shadow-inner"
                     value={formData.customHostingStyle || HOST_PERSONALITIES[formData.archetype as keyof typeof HOST_PERSONALITIES].description}
                     onChange={e => setFormData({ ...formData, customHostingStyle: e.target.value })}
                   />
                 ) : (
-                  <p className="text-xl font-serif italic text-brand-brown/60 leading-relaxed relative z-10">
+                  <p className="text-sm font-serif italic text-brand-brown/60 leading-relaxed relative z-10">
                     "{formData.customHostingStyle || HOST_PERSONALITIES[formData.archetype as keyof typeof HOST_PERSONALITIES].description}"
                   </p>
                 )}
               </motion.div>
 
-              <div className="p-8 rounded-[2rem] border border-dashed border-brand-brown/10 flex items-center gap-6">
-                <div className="w-12 h-12 rounded-full bg-brand-brown/5 flex items-center justify-center flex-shrink-0">
-                  <Users className="text-brand-brown/40" size={20} />
+              <div className="p-5 rounded-[1.5rem] border border-dashed border-brand-brown/10 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-brand-brown/5 flex items-center justify-center flex-shrink-0">
+                  <Users className="text-brand-brown/40" size={18} />
                 </div>
                 <p className="text-sm text-brand-brown/40 leading-relaxed">
                   Your gathering for <span className="text-brand-brown font-bold">{formData.guestCount} guests</span> will be curated as a <span className="text-brand-brown font-bold">{formData.archetype}</span> experience.
