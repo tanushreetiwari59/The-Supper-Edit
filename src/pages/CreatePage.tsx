@@ -1,8 +1,9 @@
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { ArrowLeft, Sparkles, Calendar, Users, Target, Send } from 'lucide-react';
 import { ARCHETYPES, SOCIAL_INTENTS, INVITE_MODES, Gathering, User, HOST_PERSONALITIES } from '../types';
+import { ThemedSelect } from '../components/ThemedSelect';
 
 export default function CreatePage() {
   const navigate = useNavigate();
@@ -69,7 +70,7 @@ export default function CreatePage() {
     } else {
       localStorage.setItem('gatherings', JSON.stringify([...existing, newGathering]));
     }
-    
+
     localStorage.setItem('currentGatheringId', newId);
     navigate('/vibe-studio');
   };
@@ -150,25 +151,23 @@ export default function CreatePage() {
                 <label className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] font-bold text-brand-brown/40">
                   <Target size={14} className="text-brand-pink" /> Social Intent
                 </label>
-                <select
-                  className="w-full bg-transparent border-b border-brand-brown/10 py-3 text-lg font-serif focus:outline-none focus:border-brand-pink transition-colors cursor-pointer"
+                <ThemedSelect
+                  options={SOCIAL_INTENTS}
                   value={formData.socialIntent}
-                  onChange={e => setFormData({ ...formData, socialIntent: e.target.value })}
-                >
-                  {SOCIAL_INTENTS.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+                  onChange={val => setFormData({ ...formData, socialIntent: val })}
+                  variant="underline"
+                />
               </div>
               <div className="space-y-4">
                 <label className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] font-bold text-brand-brown/40">
                   <Send size={14} className="text-brand-pink" /> Invite Mode
                 </label>
-                <select
-                  className="w-full bg-transparent border-b border-brand-brown/10 py-3 text-lg font-serif focus:outline-none focus:border-brand-pink transition-colors cursor-pointer"
+                <ThemedSelect
+                  options={INVITE_MODES}
                   value={formData.inviteMode}
-                  onChange={e => setFormData({ ...formData, inviteMode: e.target.value })}
-                >
-                  {INVITE_MODES.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
+                  onChange={val => setFormData({ ...formData, inviteMode: val })}
+                  variant="underline"
+                />
               </div>
             </div>
           </div>
@@ -186,13 +185,12 @@ export default function CreatePage() {
             <div className="space-y-6">
               <div className="space-y-3">
                 <label className="text-xs uppercase tracking-[0.3em] font-bold text-brand-brown/40">Archetype</label>
-                <select
-                  className="w-full bg-brand-brown/5 border border-brand-brown/5 rounded-2xl px-5 py-3 text-base font-serif italic focus:outline-none focus:ring-2 focus:ring-brand-pink/20 transition-all cursor-pointer"
+                <ThemedSelect
+                  options={ARCHETYPES}
                   value={formData.archetype}
-                  onChange={e => setFormData({ ...formData, archetype: e.target.value })}
-                >
-                  {ARCHETYPES.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
+                  onChange={val => setFormData({ ...formData, archetype: val })}
+                  variant="card"
+                />
               </div>
 
               <motion.div
@@ -238,7 +236,7 @@ export default function CreatePage() {
                 <div className="w-10 h-10 rounded-full bg-brand-brown/5 flex items-center justify-center flex-shrink-0">
                   <Users className="text-brand-brown/40" size={18} />
                 </div>
-                <p className="text-sm text-brand-brown/40 leading-relaxed">
+                <p className="text-sm font-serif text-brand-brown/40 leading-relaxed">
                   Your gathering for <span className="text-brand-brown font-bold">{formData.guestCount} guests</span> will be curated as a <span className="text-brand-brown font-bold">{formData.archetype}</span> experience.
                 </p>
               </div>

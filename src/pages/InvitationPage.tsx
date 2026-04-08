@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Wine, Sparkles, Flower, Share2, Palette, MessageCircle, Type, Printer, ArrowLeft, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Gathering, THEMES, WARMUP_PROMPTS, TYPOGRAPHY_STYLES } from '../types';
+import { ThemedSelect } from '../components/ThemedSelect';
 
 export default function InvitationPage() {
   const [gathering, setGathering] = useState<Gathering | null>(null);
@@ -178,14 +179,13 @@ export default function InvitationPage() {
               <label className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] font-bold text-brand-brown/40">
                 <MessageCircle size={14} className="text-brand-pink" /> Guest Warm-up
               </label>
-              <select
-                className="w-full bg-brand-brown/5 border border-brand-brown/5 rounded-2xl px-6 py-4 text-lg font-serif italic focus:outline-none focus:ring-2 focus:ring-brand-pink/20 transition-all cursor-pointer"
+              <ThemedSelect
+                options={WARMUP_PROMPTS}
                 value={warmupPrompt}
-                onChange={e => setWarmupPrompt(e.target.value)}
-              >
-                <option value="">No prompt selected</option>
-                {WARMUP_PROMPTS.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
+                onChange={setWarmupPrompt}
+                placeholder="No prompt selected"
+                variant="card"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-10">

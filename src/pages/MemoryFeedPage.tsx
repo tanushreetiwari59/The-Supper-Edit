@@ -54,7 +54,7 @@ export default function MemoryFeedPage() {
             <Camera size={32} className="text-brand-pink/40" />
           </div>
           <p className="font-serif italic text-4xl text-brand-brown/30 mb-4">No memories archived yet.</p>
-          <p className="text-lg text-brand-brown/40 mb-12 max-w-md mx-auto">Your first supper memory will appear here once you've captured it in the Journal.</p>
+          <p className="text-lg font-serif text-brand-brown/40 mb-12 max-w-md mx-auto">Your first supper memory will appear here once you've captured it in the Journal.</p>
           <Link to="/dashboard" className="btn-secondary">Go to Dashboard</Link>
         </div>
       ) : (

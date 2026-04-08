@@ -81,7 +81,7 @@ export default function DashboardPage() {
       {gatherings.length === 0 ? (
         <div className="text-center py-40 editorial-card glass-panel">
           <p className="font-serif italic text-4xl text-brand-brown/40 mb-6">Your table is empty.</p>
-          <p className="text-brand-brown/60 mb-10 max-w-md mx-auto leading-relaxed">Every great evening starts with a single intentional thought. Begin your hosting journey today.</p>
+          <p className="font-serif text-brand-brown/60 mb-10 max-w-md mx-auto leading-relaxed">Every great evening starts with a single intentional thought. Begin your hosting journey today.</p>
           <Link to="/create" className="btn-primary">Start Designing</Link>
         </div>
       ) : (

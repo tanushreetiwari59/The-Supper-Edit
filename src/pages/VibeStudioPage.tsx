@@ -202,9 +202,9 @@ export default function VibeStudioPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        <div className="lg:col-span-8">
-          <div className="editorial-card min-h-[500px] relative overflow-hidden glass-panel">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className="lg:col-span-7 flex flex-col">
+          <div className="editorial-card glass-panel overflow-hidden">
             <AnimatePresence mode="wait">
               {activeTab === 'menu' && (
                 <motion.div
@@ -213,30 +213,30 @@ export default function VibeStudioPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5 }}
-                  className="space-y-12"
+                  className="space-y-8"
                 >
-                  <div className="flex justify-between items-end border-b border-brand-brown/5 pb-8">
-                    <h3 className="text-5xl tracking-tight">The Tasting Edit</h3>
+                  <div className="flex justify-between items-end border-b border-brand-brown/5 pb-6">
+                    <h3 className="text-4xl tracking-tight">The Tasting Edit</h3>
                     <span className="text-xs uppercase tracking-[0.3em] font-bold text-brand-brown/30">Curated Menu</span>
                   </div>
-                  <ul className="space-y-10">
+                  <ul className="space-y-6">
                     {dynamicVibe.menu.map((item, i) => (
-                      <motion.li 
+                      <motion.li
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        key={i} 
-                        className="flex items-start gap-8"
+                        key={i}
+                        className="flex items-start gap-6"
                       >
-                        <span className="text-brand-pink font-serif italic text-3xl opacity-40">0{i+1}</span>
+                        <span className="text-brand-pink font-serif italic text-2xl opacity-40 w-8 shrink-0">0{i+1}</span>
                         <div className="flex-1">
-                          <span className="text-3xl font-serif leading-tight text-brand-brown/80">{item}</span>
-                          <div className="h-px bg-brand-brown/5 mt-6 w-full" />
+                          <span className="text-2xl font-serif italic leading-tight text-brand-brown/80">{item}</span>
+                          <div className="h-px bg-brand-brown/5 mt-4 w-full" />
                         </div>
                       </motion.li>
                     ))}
                   </ul>
-                  <div className="pt-12 flex justify-end">
+                  <div className="pt-4 flex justify-end">
                     <button 
                       onClick={handlePrint}
                       className="btn-secondary flex items-center gap-3 group"
@@ -354,13 +354,88 @@ export default function VibeStudioPage() {
               )}
             </AnimatePresence>
           </div>
+
+          {/* Spring Mood — separate card below */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="editorial-card glass-panel border-brand-blue/10 mt-8"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-brand-blue/10 flex items-center justify-center">
+                  <CloudSun className="text-brand-blue" size={14} />
+                </div>
+                {isEditingMoodTitle ? (
+                  <input
+                    type="text"
+                    className="bg-transparent border-b border-brand-blue/30 text-[10px] uppercase tracking-[0.3em] text-brand-blue font-bold focus:outline-none w-28"
+                    value={gathering.customSeasonName || season}
+                    onChange={(e) => { saveToGathering({ customSeasonName: e.target.value }); }}
+                    autoFocus
+                  />
+                ) : (
+                  <span className="text-[10px] uppercase tracking-[0.3em] text-brand-blue font-bold">{gathering.customSeasonName || season} Mood</span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsEditingMoodTitle(!isEditingMoodTitle)}
+                  className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/20 hover:text-brand-blue transition-colors"
+                >
+                  {isEditingMoodTitle ? 'Save' : 'Edit'}
+                </button>
+                <button onClick={generateNewSeasonal} className="text-brand-blue/30 hover:text-brand-blue transition-colors group" title="Refresh">
+                  <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-700" />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: 'Seasonal Menu', key: 'menu' as const },
+                { label: 'Atmosphere',    key: 'decor' as const },
+                { label: 'Soundscape',   key: 'playlist' as const },
+              ].map((item) => (
+                <div key={item.key} className="group bg-white/60 border border-brand-brown/5 rounded-2xl p-4 hover:border-brand-blue/20 transition-all duration-300">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-[10px] uppercase tracking-widest text-brand-brown/30 font-bold">{item.label}</span>
+                    <button
+                      onClick={() => setIsEditingSeason({ ...isEditingSeason, [item.key]: !isEditingSeason[item.key] })}
+                      className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/20 group-hover:text-brand-blue transition-colors"
+                    >
+                      {isEditingSeason[item.key] ? 'Save' : 'Edit'}
+                    </button>
+                  </div>
+                  {isEditingSeason[item.key] ? (
+                    <input
+                      type="text"
+                      className="w-full bg-transparent border-b border-brand-blue/30 py-1 text-sm font-serif italic focus:outline-none focus:border-brand-blue text-brand-brown"
+                      value={seasonalSuggestions[item.key]}
+                      onChange={(e) => {
+                        const newS = { ...seasonalSuggestions, [item.key]: e.target.value };
+                        setSeasonalSuggestions(newS);
+                        saveToGathering({
+                          [item.key === 'menu' ? 'seasonalMenu' : item.key === 'decor' ? 'seasonalAtmosphere' : 'seasonalSoundscape']: e.target.value
+                        });
+                      }}
+                    />
+                  ) : (
+                    <p className="text-sm font-serif italic text-brand-brown/70 leading-relaxed">{seasonalSuggestions[item.key]}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
         </div>
 
-        <div className="lg:col-span-4 space-y-10">
-          <motion.div 
+        <div className="lg:col-span-5 flex flex-col">
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="editorial-card glass-panel"
+            className="editorial-card glass-panel flex-1"
           >
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
@@ -380,7 +455,7 @@ export default function VibeStudioPage() {
               </button>
             </div>
             
-            <p className="text-sm text-brand-brown/60 mb-8 font-medium leading-relaxed">Select a ritual to ground your evening in intention and connection.</p>
+            <p className="text-sm font-serif text-brand-brown/60 mb-8 leading-relaxed">Select a ritual to ground your evening in intention and connection.</p>
 
             {selectedRitualId !== 'skip' ? (
               <div className="space-y-6">
@@ -405,7 +480,7 @@ export default function VibeStudioPage() {
                         </h5>
                         {selectedRitualId === r.title && <Sparkles size={16} className="text-brand-pink animate-pulse" />}
                       </div>
-                      <p className={`text-sm leading-relaxed transition-opacity ${selectedRitualId === r.title ? 'text-brand-brown/80' : 'text-brand-brown/50'}`}>
+                      <p className={`text-sm font-serif leading-relaxed transition-opacity ${selectedRitualId === r.title ? 'text-brand-brown/80' : 'text-brand-brown/50'}`}>
                         {r.description}
                       </p>
                     </button>
@@ -433,14 +508,14 @@ export default function VibeStudioPage() {
                         }}
                       />
                     ) : (
-                      <p className="text-sm text-brand-brown/70 italic leading-relaxed bg-brand-pink/5 p-4 rounded-xl border border-brand-pink/10">"{customRitualText}"</p>
+                      <p className="text-sm font-serif italic text-brand-brown/70 leading-relaxed bg-brand-pink/5 p-4 rounded-xl border border-brand-pink/10">"{customRitualText}"</p>
                     )}
                   </div>
                 )}
               </div>
             ) : (
               <div className="py-12 text-center bg-brand-brown/5 rounded-3xl border border-dashed border-brand-brown/10">
-                <p className="text-sm italic text-brand-brown/40 mb-6">Ritual skipped for this gathering.</p>
+                <p className="text-sm font-serif italic text-brand-brown/40 mb-6">Ritual skipped for this gathering.</p>
                 <button 
                   onClick={() => setSelectedRitualId(null)}
                   className="btn-secondary text-[10px] py-3"
@@ -451,84 +526,6 @@ export default function VibeStudioPage() {
             )}
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="editorial-card glass-panel border-brand-blue/10"
-          >
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-brand-blue/10 flex items-center justify-center">
-                  <CloudSun className="text-brand-blue" size={16} />
-                </div>
-                {isEditingMoodTitle ? (
-                  <input
-                    type="text"
-                    className="bg-transparent border-b border-brand-blue/30 text-[10px] uppercase tracking-[0.3em] text-brand-blue font-bold focus:outline-none focus:border-brand-blue w-32"
-                    value={gathering.customSeasonName || season}
-                    onChange={(e) => {
-                      saveToGathering({ customSeasonName: e.target.value });
-                    }}
-                    autoFocus
-                  />
-                ) : (
-                  <span className="text-[10px] uppercase tracking-[0.3em] text-brand-blue font-bold">{gathering.customSeasonName || season} Mood</span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setIsEditingMoodTitle(!isEditingMoodTitle)}
-                  className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/20 hover:text-brand-blue transition-colors"
-                >
-                  {isEditingMoodTitle ? 'Save' : 'Edit'}
-                </button>
-                <button 
-                  onClick={generateNewSeasonal}
-                  className="text-brand-blue/40 hover:text-brand-blue transition-colors group"
-                  title="Refresh Seasonal Suggestions"
-                >
-                  <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="space-y-8">
-              {[
-                { label: 'Seasonal Menu', key: 'menu' as const },
-                { label: 'Atmosphere', key: 'decor' as const },
-                { label: 'Soundscape', key: 'playlist' as const }
-              ].map((item) => (
-                <div key={item.key} className="group">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-[10px] uppercase tracking-widest text-brand-brown/40 font-bold">{item.label}</span>
-                    <button 
-                      onClick={() => setIsEditingSeason({ ...isEditingSeason, [item.key]: !isEditingSeason[item.key] })}
-                      className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/20 group-hover:text-brand-blue transition-colors"
-                    >
-                      {isEditingSeason[item.key] ? 'Save' : 'Edit'}
-                    </button>
-                  </div>
-                  {isEditingSeason[item.key] ? (
-                    <input
-                      type="text"
-                      className="w-full bg-transparent border-b border-brand-blue/30 py-2 text-sm font-serif italic focus:outline-none focus:border-brand-blue"
-                      value={seasonalSuggestions[item.key]}
-                      onChange={(e) => {
-                        const newS = { ...seasonalSuggestions, [item.key]: e.target.value };
-                        setSeasonalSuggestions(newS);
-                        saveToGathering({
-                          [item.key === 'menu' ? 'seasonalMenu' : item.key === 'decor' ? 'seasonalAtmosphere' : 'seasonalSoundscape']: e.target.value
-                        });
-                      }}
-                    />
-                  ) : (
-                    <p className="text-base font-serif italic text-brand-brown/80 leading-relaxed">{seasonalSuggestions[item.key]}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </motion.div>
         </div>
       </div>
 
