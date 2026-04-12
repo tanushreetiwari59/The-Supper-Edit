@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Wine, Sparkles, Flower, Share2, Palette, MessageCircle, Type, Printer, ArrowLeft, Check } from 'lucide-react';
+import { Wine, Sparkles, Flower, Share2, Palette, MessageCircle, Type, Printer, ArrowLeft, Check, Link2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Gathering, THEMES, WARMUP_PROMPTS, TYPOGRAPHY_STYLES } from '../types';
 import { ThemedSelect } from '../components/ThemedSelect';
@@ -15,6 +15,10 @@ export default function InvitationPage() {
   const [typographyStyle, setTypographyStyle] = useState<string>('Editorial');
   const [frameStyle, setFrameStyle] = useState<string>('none');
   const [isSaved, setIsSaved] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [customWarmupText, setCustomWarmupText] = useState('');
+  const CUSTOM_WARMUP_OPTION = 'Write your own';
+  const effectiveWarmupPrompt = warmupPrompt === CUSTOM_WARMUP_OPTION ? customWarmupText : warmupPrompt;
 
   useEffect(() => {
     const id = localStorage.getItem('currentGatheringId');
@@ -36,7 +40,7 @@ export default function InvitationPage() {
     if (!gathering) return;
     const all = JSON.parse(localStorage.getItem('gatherings') || '[]');
     const updated = all.map((g: Gathering) => 
-      g.id === gathering.id ? { ...g, hostName, accentColor, decorIcon: selectedIcon, theme, warmupPrompt, typographyStyle, frameStyle } : g
+      g.id === gathering.id ? { ...g, hostName, accentColor, decorIcon: selectedIcon, theme, warmupPrompt: effectiveWarmupPrompt, typographyStyle, frameStyle } : g
     );
     localStorage.setItem('gatherings', JSON.stringify(updated));
     setIsSaved(true);
@@ -45,6 +49,23 @@ export default function InvitationPage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const copyGuestLink = () => {
+    if (!gathering) return;
+    const titleSlug = gathering.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
+    const slug = `${titleSlug}-${gathering.date}`;
+    const all = JSON.parse(localStorage.getItem('gatherings') || '[]');
+    const updated = all.map((g: Gathering) => g.id === gathering.id ? { ...g, guestSlug: slug } : g);
+    localStorage.setItem('gatherings', JSON.stringify(updated));
+    const url = `${window.location.origin}/g/${slug}`;
+    navigator.clipboard.writeText(url);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   if (!gathering) return (
@@ -180,12 +201,25 @@ export default function InvitationPage() {
                 <MessageCircle size={14} className="text-brand-pink" /> Guest Warm-up
               </label>
               <ThemedSelect
-                options={WARMUP_PROMPTS}
+                options={[...WARMUP_PROMPTS, CUSTOM_WARMUP_OPTION]}
                 value={warmupPrompt}
-                onChange={setWarmupPrompt}
+                onChange={(val) => {
+                  setWarmupPrompt(val);
+                  if (val !== CUSTOM_WARMUP_OPTION) setCustomWarmupText('');
+                }}
                 placeholder="No prompt selected"
                 variant="card"
               />
+              {warmupPrompt === CUSTOM_WARMUP_OPTION && (
+                <input
+                  type="text"
+                  autoFocus
+                  className="w-full bg-transparent border-b border-brand-brown/10 py-3 text-lg font-serif italic focus:outline-none focus:border-brand-pink transition-colors placeholder:text-brand-brown/20"
+                  placeholder="Type your warm-up question..."
+                  value={customWarmupText}
+                  onChange={e => setCustomWarmupText(e.target.value)}
+                />
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-10">
@@ -254,6 +288,31 @@ export default function InvitationPage() {
                 <Share2 size={18} /> Share
               </button>
             </div>
+            <button onClick={copyGuestLink} className="btn-secondary w-full flex items-center justify-center gap-2 py-4 relative overflow-hidden">
+              <AnimatePresence mode="wait">
+                {linkCopied ? (
+                  <motion.span
+                    key="copied"
+                    initial={{ y: 12, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -12, opacity: 0 }}
+                    className="flex items-center gap-2"
+                  >
+                    <Check size={18} className="text-brand-pink" /> Link copied
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="copy"
+                    initial={{ y: 12, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -12, opacity: 0 }}
+                    className="flex items-center gap-2"
+                  >
+                    <Link2 size={18} /> Copy guest link
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
           </div>
         </section>
 
@@ -325,8 +384,8 @@ export default function InvitationPage() {
                   </p>
                 </motion.div>
 
-                {warmupPrompt && (
-                  <motion.div 
+                {effectiveWarmupPrompt && (
+                  <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.7 }}
@@ -336,7 +395,7 @@ export default function InvitationPage() {
                       <MessageCircle size={14} className="text-brand-pink" />
                       <span className="text-[10px] uppercase tracking-[0.2em] opacity-40 font-bold">Guest Warm-up</span>
                     </div>
-                    <p className="text-base font-serif italic leading-relaxed text-brand-brown/70">"{warmupPrompt}"</p>
+                    <p className="text-base font-serif italic leading-relaxed text-brand-brown/70">"{effectiveWarmupPrompt}"</p>
                   </motion.div>
                 )}
                 
@@ -384,13 +443,13 @@ export default function InvitationPage() {
             {new Date(gathering.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
 
-          {warmupPrompt && (
+          {effectiveWarmupPrompt && (
             <div className="mb-16 p-10 bg-brand-beige/30 rounded-3xl border border-brand-brown/5 max-w-md">
               <div className="flex items-center gap-2 justify-center mb-4">
                 <MessageCircle size={18} className="text-brand-pink" />
                 <span className="text-xs uppercase tracking-widest opacity-40">Guest Warm-up</span>
               </div>
-              <p className="text-lg font-serif italic leading-relaxed">"{warmupPrompt}"</p>
+              <p className="text-lg font-serif italic leading-relaxed">"{effectiveWarmupPrompt}"</p>
             </div>
           )}
           

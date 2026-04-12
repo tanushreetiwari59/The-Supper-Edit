@@ -34,6 +34,8 @@ export interface Gathering {
     highlight?: string;
     vibeWord?: string;
   };
+  guestSlug?: string;
+  atmospherePhoto?: string;
 }
 
 export const HOST_PERSONALITIES = {

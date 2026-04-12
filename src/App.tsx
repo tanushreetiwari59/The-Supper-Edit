@@ -10,6 +10,7 @@ import InvitationPage from './pages/InvitationPage';
 import MemoryPage from './pages/MemoryPage';
 import MemoryFeedPage from './pages/MemoryFeedPage';
 import AuthPage from './pages/AuthPage';
+import GuestPage from './pages/GuestPage';
 import { User } from './types';
 
 function Navigation() {
@@ -22,7 +23,7 @@ function Navigation() {
     if (stored) setUser(JSON.parse(stored));
   }, [location]);
 
-  if (location.pathname === '/' || location.pathname === '/auth') return null;
+  if (location.pathname === '/' || location.pathname === '/auth' || location.pathname.startsWith('/g/')) return null;
 
   const handleLogout = () => {
     localStorage.removeItem('currentUser');
@@ -80,6 +81,7 @@ export default function App() {
             <Route path="/invitation" element={<InvitationPage />} />
             <Route path="/memory" element={<MemoryPage />} />
             <Route path="/feed" element={<MemoryFeedPage />} />
+            <Route path="/g/:slug" element={<GuestPage />} />
           </Routes>
         </AnimatePresence>
       </div>

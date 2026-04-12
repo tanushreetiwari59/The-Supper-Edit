@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Camera, Heart, Quote, ArrowLeft, Sparkles, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -10,6 +10,7 @@ export default function MemoryPage() {
   const [vibeWord, setVibeWord] = useState('');
   const [photo, setPhoto] = useState('');
   const [isSaved, setIsSaved] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const id = localStorage.getItem('currentGatheringId');
@@ -28,16 +29,47 @@ export default function MemoryPage() {
   const saveMemory = () => {
     if (!gathering) return;
     const all = JSON.parse(localStorage.getItem('gatherings') || '[]');
-    const updated = all.map((g: Gathering) => 
+    const updated = all.map((g: Gathering) =>
       g.id === gathering.id ? { ...g, memory: { highlight, vibeWord, photo } } : g
     );
     localStorage.setItem('gatherings', JSON.stringify(updated));
+
+    const userGatherings = updated
+      .filter((g: Gathering) => g.userId === gathering.userId)
+      .sort((a: Gathering, b: Gathering) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const editNo = userGatherings.findIndex((g: Gathering) => g.id === gathering.id) + 1;
+
+    const existingMemories = JSON.parse(localStorage.getItem('supperEditMemories') || '[]');
+    const memoryEntry: {
+      id: string; userId: string; title: string; editNo: number;
+      date: string; highlight: string; vibeWord: string; photo?: string;
+    } = {
+      id: gathering.id,
+      userId: gathering.userId,
+      title: gathering.title,
+      editNo,
+      date: gathering.date,
+      highlight,
+      vibeWord,
+      ...(photo ? { photo } : {}),
+    };
+    const idx = existingMemories.findIndex((m: { id: string }) => m.id === gathering.id);
+    const updatedMemories = idx >= 0
+      ? existingMemories.map((m: { id: string }) => m.id === gathering.id ? memoryEntry : m)
+      : [...existingMemories, memoryEntry];
+    localStorage.setItem('supperEditMemories', JSON.stringify(updatedMemories));
+
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
   };
 
-  const generatePhoto = () => {
-    setPhoto(`https://picsum.photos/seed/${Date.now()}/800/800`);
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setPhoto(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   if (!gathering) return (
@@ -102,13 +134,20 @@ export default function MemoryPage() {
               <label className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] font-bold text-brand-brown/40">
                 <Camera size={14} className="text-brand-pink" /> Snapshot
               </label>
-              <button 
-                onClick={generatePhoto}
+              <button
+                onClick={() => photoInputRef.current?.click()}
                 className="w-full py-4 rounded-2xl border border-dashed border-brand-brown/20 flex items-center justify-center gap-3 text-brand-brown/40 hover:border-brand-pink hover:text-brand-pink transition-all group"
               >
                 <Camera size={20} className="group-hover:scale-110 transition-transform" />
-                <span className="text-xs uppercase tracking-widest font-bold">{photo ? 'Change Photo' : 'Capture a Moment'}</span>
+                <span className="text-xs uppercase tracking-widest font-bold">{photo ? 'Change Photo' : 'Upload a photo'}</span>
               </button>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
             </div>
           </div>
 

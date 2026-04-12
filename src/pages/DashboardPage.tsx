@@ -4,10 +4,57 @@ import { Calendar, Users, ArrowRight, Trash2, Edit3, Mail, Camera, Printer, Plus
 import { Link, useNavigate } from 'react-router-dom';
 import { Gathering, User } from '../types';
 
+interface HostingSignature {
+  totalHosted: number;
+  topRitual: string | null;
+  topCount: number | null;
+  personality: string;
+  nextEdit: string;
+}
+
+function computeSignature(gs: Gathering[]): HostingSignature {
+  const totalHosted = gs.length;
+
+  const ritualCounts: Record<string, number> = {};
+  gs.forEach(g => {
+    if (g.selectedRitualId && g.selectedRitualId !== 'skip') {
+      ritualCounts[g.selectedRitualId] = (ritualCounts[g.selectedRitualId] || 0) + 1;
+    }
+  });
+  const topRitual = Object.entries(ritualCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+
+  const countFreq: Record<number, number> = {};
+  gs.forEach(g => {
+    countFreq[g.guestCount] = (countFreq[g.guestCount] || 0) + 1;
+  });
+  const topCount = gs.length
+    ? Number(Object.entries(countFreq).sort((a, b) => b[1] - a[1])[0][0])
+    : null;
+
+  const allVibeWords = gs.map(g => g.memory?.vibeWord ?? '').join(' ').toLowerCase();
+
+  let personality: string;
+  if (topRitual === 'The Table Question') {
+    personality = 'You believe conversation is the main course.';
+  } else if (topCount !== null && topCount < 8) {
+    personality = 'You host with intention. Small tables, deep evenings.';
+  } else if (/warm|golden|soft|luminous/.test(allVibeWords)) {
+    personality = 'Your gatherings feel like candlelight.';
+  } else if (topRitual === 'The First Pour') {
+    personality = 'You set the tone before the first glass is raised.';
+  } else {
+    personality = 'Every table you set tells a story worth returning to.';
+  }
+
+  const nextEdit = String(totalHosted + 1).padStart(3, '0');
+  return { totalHosted, topRitual, topCount, personality, nextEdit };
+}
+
 export default function DashboardPage() {
   const [gatherings, setGatherings] = useState<Gathering[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [printingGathering, setPrintingGathering] = useState<Gathering | null>(null);
+  const [hostingSignature, setHostingSignature] = useState<HostingSignature | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,8 +66,14 @@ export default function DashboardPage() {
     const u = JSON.parse(storedUser);
     setUser(u);
 
-    const data = JSON.parse(localStorage.getItem('gatherings') || '[]');
-    setGatherings(data.filter((g: Gathering) => g.userId === u.id));
+    const data: Gathering[] = JSON.parse(localStorage.getItem('gatherings') || '[]');
+    const userGatherings = data.filter((g: Gathering) => g.userId === u.id);
+    setGatherings(userGatherings);
+
+    const memories: unknown[] = JSON.parse(localStorage.getItem('supperEditMemories') || '[]');
+    if (memories.length >= 3 && userGatherings.length > 0) {
+      setHostingSignature(computeSignature(userGatherings));
+    }
   }, [navigate]);
 
   const deleteGathering = (id: string) => {
@@ -215,6 +268,61 @@ export default function DashboardPage() {
                   </motion.div>
                 ))}
               </div>
+            </section>
+          )}
+
+          {hostingSignature && (
+            <section>
+              <div className="flex items-center gap-4 mb-12">
+                <h3 className="text-xs uppercase tracking-[0.4em] font-bold text-brand-brown/30">Your Hosting Signature</h3>
+                <div className="flex-1 h-px bg-brand-brown/5" />
+              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="editorial-card glass-panel max-w-2xl"
+              >
+                <div className="flex items-center gap-3 mb-10">
+                  <div className="w-8 h-px bg-brand-pink" />
+                  <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-brand-pink">Read</span>
+                </div>
+
+                <div className="space-y-8">
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase tracking-[0.35em] font-bold text-brand-brown/30">Gatherings Hosted</p>
+                    <p className="text-xl font-serif text-brand-brown">
+                      You have hosted {hostingSignature.totalHosted} {hostingSignature.totalHosted === 1 ? 'gathering' : 'gatherings'}.
+                    </p>
+                  </div>
+
+                  {hostingSignature.topRitual && (
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase tracking-[0.35em] font-bold text-brand-brown/30">Ritual of Choice</p>
+                      <p className="text-xl font-serif text-brand-brown">{hostingSignature.topRitual}</p>
+                    </div>
+                  )}
+
+                  {hostingSignature.topCount !== null && (
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase tracking-[0.35em] font-bold text-brand-brown/30">Table Size</p>
+                      <p className="text-xl font-serif text-brand-brown">
+                        You tend to host intimate evenings of {hostingSignature.topCount}.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="pt-8 border-t border-brand-brown/5">
+                    <p className="font-serif italic text-2xl text-brand-brown/50 leading-snug">
+                      "{hostingSignature.personality}"
+                    </p>
+                  </div>
+
+                  <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-brown/20 pt-2">
+                    Edit No. {hostingSignature.nextEdit} is waiting.
+                  </p>
+                </div>
+              </motion.div>
             </section>
           )}
         </div>

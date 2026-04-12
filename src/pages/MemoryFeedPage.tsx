@@ -1,11 +1,22 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Quote, Calendar, MapPin, ArrowLeft, Camera, Sparkles } from 'lucide-react';
-import { Gathering, User } from '../types';
+import { Quote, Calendar, ArrowLeft, Camera } from 'lucide-react';
+import { User } from '../types';
+
+interface MemoryEntry {
+  id: string;
+  userId: string;
+  title: string;
+  editNo: number;
+  date: string;
+  highlight: string;
+  vibeWord: string;
+  photo?: string;
+}
 
 export default function MemoryFeedPage() {
-  const [memories, setMemories] = useState<Gathering[]>([]);
+  const [memories, setMemories] = useState<MemoryEntry[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
@@ -18,10 +29,10 @@ export default function MemoryFeedPage() {
     const u = JSON.parse(storedUser);
     setUser(u);
 
-    const all = JSON.parse(localStorage.getItem('gatherings') || '[]');
+    const all: MemoryEntry[] = JSON.parse(localStorage.getItem('supperEditMemories') || '[]');
     const filtered = all
-      .filter((g: Gathering) => g.userId === u.id && g.memory?.highlight)
-      .sort((a: Gathering, b: Gathering) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .filter(m => m.userId === u.id && m.highlight)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setMemories(filtered);
   }, [navigate]);
 
@@ -79,21 +90,21 @@ export default function MemoryFeedPage() {
                     </div>
                     <h3 className="text-4xl tracking-tight mb-3 group-hover:text-brand-pink transition-colors duration-500">{m.title}</h3>
                     <div className={`flex items-center gap-2 opacity-30 ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
-                      <span className="text-[10px] uppercase tracking-[0.3em] font-bold">{m.archetype}</span>
+                      <span className="text-[10px] uppercase tracking-[0.3em] font-bold">Edit No. {m.editNo}</span>
                     </div>
                   </div>
 
                   <div className="mb-10 relative">
                     <Quote size={32} className={`text-brand-pink/10 absolute -top-4 ${i % 2 === 0 ? '-right-4' : '-left-4'}`} />
                     <p className="font-serif italic text-2xl leading-relaxed text-brand-brown/80 relative z-10">
-                      "{m.memory?.highlight}"
+                      "{m.highlight}"
                     </p>
                   </div>
 
                   <div className={`flex items-center gap-6 pt-8 border-t border-brand-brown/5 ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
                     <div className={i % 2 === 0 ? 'text-right' : 'text-left'}>
                       <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-brown/30 block mb-1">The Vibe</span>
-                      <p className="text-xl font-serif italic text-brand-pink">{m.memory?.vibeWord}</p>
+                      <p className="text-xl font-serif italic text-brand-pink">{m.vibeWord}</p>
                     </div>
                   </div>
                 </div>
@@ -102,14 +113,14 @@ export default function MemoryFeedPage() {
               <div className="relative z-10 w-6 h-6 rounded-full bg-brand-pink border-[6px] border-brand-beige shadow-xl ring-8 ring-brand-pink/5" />
 
               <div className="flex-1 w-full">
-                <motion.div 
+                <motion.div
                   whileHover={{ scale: 1.02, rotate: 0 }}
                   className={`aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.2)] transition-all duration-700 ${i % 2 === 0 ? 'rotate-3' : '-rotate-3'}`}
                 >
-                  {m.memory?.photo ? (
-                    <img 
-                      src={m.memory.photo} 
-                      alt={m.title} 
+                  {m.photo ? (
+                    <img
+                      src={m.photo}
+                      alt={m.title}
                       className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
                       referrerPolicy="no-referrer"
                     />

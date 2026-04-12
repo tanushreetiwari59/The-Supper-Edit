@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Utensils, Music, Palette, Info, RefreshCw, Sparkles, CloudSun, Printer, ArrowLeft } from 'lucide-react';
+import { Utensils, Music, Palette, Info, RefreshCw, Sparkles, CloudSun, Printer, ArrowLeft, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Gathering, VIBE_DATA, VIBE_POOLS, SUPPER_RITUALS, SEASONAL_POOLS } from '../types';
 
@@ -9,8 +9,9 @@ export default function VibeStudioPage() {
   const [activeTab, setActiveTab] = useState<'menu' | 'playlist' | 'decor'>('menu');
   const [ritualOptions, setRitualOptions] = useState<{ title: string; description: string }[]>([]);
   const [selectedRitualId, setSelectedRitualId] = useState<string | 'skip' | null>(null);
-  const [isEditingRitual, setIsEditingRitual] = useState(false);
+  const [isEditingRitual, setIsEditingRitual] = useState(true);
   const [isEditingDecor, setIsEditingDecor] = useState(false);
+  const [isEditingMenu, setIsEditingMenu] = useState(false);
   const [isEditingMoodTitle, setIsEditingMoodTitle] = useState(false);
   const [customRitualText, setCustomRitualText] = useState('');
   
@@ -25,6 +26,20 @@ export default function VibeStudioPage() {
     decor: false,
     playlist: false
   });
+
+  const [atmospherePhoto, setAtmospherePhoto] = useState<string | null>(null);
+  const [selectedPresetUrl, setSelectedPresetUrl] = useState<string | null>(null);
+  const atmosphereUploadRef = useRef<HTMLInputElement>(null);
+
+  const ATMOSPHERE_PRESETS = [
+    { url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400', alt: 'Candlelit dinner table' },
+    { url: 'https://images.unsplash.com/photo-1490750967868-88df5691cc8a?w=400', alt: 'Wildflowers on linen' },
+    { url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400', alt: 'Elegant table setting' },
+    { url: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=400', alt: 'Morning brunch spread' },
+    { url: 'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=400', alt: 'Warm ambient dining room' },
+    { url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400', alt: 'Wine being poured' },
+    { url: 'https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?w=400', alt: 'Rustic table with candles' },
+  ];
 
   const [dynamicVibe, setDynamicVibe] = useState<{
     menu: string[];
@@ -49,6 +64,11 @@ export default function VibeStudioPage() {
       setRitualOptions(shuffled.slice(0, 3));
       setSelectedRitualId(found.selectedRitualId || null);
       setCustomRitualText(found.customRitualText || '');
+      if (found.atmospherePhoto) {
+        setAtmospherePhoto(found.atmospherePhoto);
+        const isPreset = ATMOSPHERE_PRESETS.some(p => p.url === found.atmospherePhoto);
+        setSelectedPresetUrl(isPreset ? found.atmospherePhoto : null);
+      }
       
       const date = new Date(found.date);
       const month = date.getMonth();
@@ -103,10 +123,24 @@ export default function VibeStudioPage() {
     }
   };
 
-  const getDecorImageSeed = (text: string) => {
-    const keywords = text.toLowerCase().match(/(candle|linen|glassware|flower|wood|ceramic|vintage|rustic|minimal|light|table|dining|plate|silverware)/g);
-    const baseSeed = keywords ? keywords.join('-') : 'dinner-table-setting';
-    return `dinner-table-setting-${baseSeed}`;
+  const handleAtmosphereUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target?.result as string;
+      setAtmospherePhoto(base64);
+      setSelectedPresetUrl(null);
+      saveToGathering({ atmospherePhoto: base64 });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const selectPreset = (url: string) => {
+    setAtmospherePhoto(url);
+    setSelectedPresetUrl(url);
+    saveToGathering({ atmospherePhoto: url });
   };
 
   const handlePrint = () => {
@@ -215,9 +249,27 @@ export default function VibeStudioPage() {
                   transition={{ duration: 0.5 }}
                   className="space-y-8"
                 >
+                  {atmospherePhoto && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="w-full h-40 rounded-2xl overflow-hidden mb-2 relative"
+                    >
+                      <img src={atmospherePhoto} alt="Evening atmosphere" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/60 via-white/10 to-transparent" />
+                      <div className="absolute bottom-4 left-5">
+                        <span className="text-[9px] uppercase tracking-[0.4em] font-bold text-brand-brown/50">Tonight's atmosphere</span>
+                      </div>
+                    </motion.div>
+                  )}
                   <div className="flex justify-between items-end border-b border-brand-brown/5 pb-6">
                     <h3 className="text-4xl tracking-tight">The Tasting Edit</h3>
-                    <span className="text-xs uppercase tracking-[0.3em] font-bold text-brand-brown/30">Curated Menu</span>
+                    <button
+                      onClick={() => setIsEditingMenu(!isEditingMenu)}
+                      className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/40 hover:text-brand-pink transition-colors"
+                    >
+                      {isEditingMenu ? 'Done' : 'Edit'}
+                    </button>
                   </div>
                   <ul className="space-y-6">
                     {dynamicVibe.menu.map((item, i) => (
@@ -226,22 +278,61 @@ export default function VibeStudioPage() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.1 }}
                         key={i}
-                        className="flex items-start gap-6"
+                        className="flex items-center gap-6"
                       >
-                        <span className="text-brand-pink font-serif italic text-2xl opacity-40 w-8 shrink-0">0{i+1}</span>
+                        <span className="text-brand-pink font-serif italic text-2xl opacity-40 w-8 shrink-0">0{i + 1}</span>
                         <div className="flex-1">
-                          <span className="text-2xl font-serif italic leading-tight text-brand-brown/80">{item}</span>
-                          <div className="h-px bg-brand-brown/5 mt-4 w-full" />
+                          {isEditingMenu ? (
+                            <input
+                              type="text"
+                              className="w-full bg-transparent border-b border-brand-brown/10 py-2 text-2xl font-serif italic text-brand-brown/80 focus:outline-none focus:border-brand-pink transition-colors"
+                              value={item}
+                              onChange={(e) => {
+                                const updated = dynamicVibe.menu.map((m, j) => j === i ? e.target.value : m);
+                                setDynamicVibe({ ...dynamicVibe, menu: updated });
+                                saveToGathering({ customMenu: updated });
+                              }}
+                            />
+                          ) : (
+                            <>
+                              <span className="text-2xl font-serif italic leading-tight text-brand-brown/80">{item}</span>
+                              <div className="h-px bg-brand-brown/5 mt-4 w-full" />
+                            </>
+                          )}
                         </div>
+                        {isEditingMenu && (
+                          <button
+                            onClick={() => {
+                              const updated = dynamicVibe.menu.filter((_, j) => j !== i);
+                              setDynamicVibe({ ...dynamicVibe, menu: updated });
+                              saveToGathering({ customMenu: updated });
+                            }}
+                            className="text-brand-brown/20 hover:text-red-400 transition-colors text-xl leading-none flex-none"
+                          >
+                            ×
+                          </button>
+                        )}
                       </motion.li>
                     ))}
                   </ul>
+                  {isEditingMenu && (
+                    <button
+                      onClick={() => {
+                        const updated = [...dynamicVibe.menu, ''];
+                        setDynamicVibe({ ...dynamicVibe, menu: updated });
+                        saveToGathering({ customMenu: updated });
+                      }}
+                      className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-brown/30 hover:text-brand-pink transition-colors flex items-center gap-2 pt-2"
+                    >
+                      + Add item
+                    </button>
+                  )}
                   <div className="pt-4 flex justify-end">
-                    <button 
+                    <button
                       onClick={handlePrint}
                       className="btn-secondary flex items-center gap-3 group"
                     >
-                      <Printer size={18} /> 
+                      <Printer size={18} />
                       <span>Print Menu Cards</span>
                     </button>
                   </div>
@@ -296,59 +387,104 @@ export default function VibeStudioPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5 }}
-                  className="space-y-12"
+                  className="space-y-10"
                 >
-                  <div className="flex flex-col md:flex-row gap-16 items-start">
-                    <div className="flex-1 w-full">
-                      <div className="flex justify-between items-center mb-10">
-                        <h3 className="text-5xl tracking-tight">Atmosphere</h3>
-                        <button 
-                          onClick={() => setIsEditingDecor(!isEditingDecor)}
-                          className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/40 hover:text-brand-pink transition-colors"
-                        >
-                          {isEditingDecor ? 'Save' : 'Edit Details'}
-                        </button>
-                      </div>
-                      
-                      {isEditingDecor ? (
-                        <textarea
-                          className="w-full bg-white/50 border border-brand-brown/10 rounded-2xl p-8 text-2xl font-serif leading-relaxed text-brand-brown focus:outline-none focus:ring-2 focus:ring-brand-pink/20 min-h-[250px] shadow-inner"
-                          value={dynamicVibe.decor}
-                          onChange={(e) => {
-                            const newDecor = e.target.value;
-                            setDynamicVibe({ ...dynamicVibe, decor: newDecor });
-                            saveToGathering({ customDecor: newDecor });
-                          }}
+                  {/* Large prominent photo — full width */}
+                  <AnimatePresence mode="wait">
+                    {atmospherePhoto ? (
+                      <motion.div
+                        key={atmospherePhoto}
+                        initial={{ opacity: 0, scale: 0.97 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.02 }}
+                        transition={{ duration: 0.6 }}
+                        className="w-full aspect-[16/9] rounded-[2rem] overflow-hidden shadow-xl shadow-brand-brown/15 relative group"
+                      >
+                        <img
+                          src={atmospherePhoto}
+                          alt="Atmosphere"
+                          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                         />
-                      ) : (
-                        <p className="text-3xl font-serif leading-relaxed text-brand-brown/70 italic">
-                          "{dynamicVibe.decor}"
-                        </p>
-                      )}
-
-                      <div className="mt-12 pt-12 border-t border-brand-brown/5">
-                        <button 
-                          onClick={generateNewDecor}
-                          className="btn-secondary flex items-center gap-3 group"
-                        >
-                          <RefreshCw size={18} className="group-hover:rotate-90 transition-transform" /> 
-                          <span>New Suggestion</span>
-                        </button>
+                        <div className="absolute inset-0 bg-gradient-to-t from-brand-brown/30 to-transparent" />
+                      </motion.div>
+                    ) : (
+                      <div className="w-full aspect-[16/9] rounded-[2rem] bg-brand-brown/5 border border-dashed border-brand-brown/10 flex flex-col items-center justify-center gap-3 text-brand-brown/20">
+                        <Palette size={36} strokeWidth={1} />
+                        <p className="text-[10px] uppercase tracking-widest font-bold">Choose a photo below</p>
                       </div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Atmosphere description */}
+                  <div>
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-4xl tracking-tight">Atmosphere</h3>
+                      <button
+                        onClick={() => setIsEditingDecor(!isEditingDecor)}
+                        className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/40 hover:text-brand-pink transition-colors"
+                      >
+                        {isEditingDecor ? 'Save' : 'Edit Details'}
+                      </button>
                     </div>
-                    <motion.div 
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="w-full md:w-80 aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-brand-brown/20 relative group"
-                    >
-                      <img 
-                        src={`https://picsum.photos/seed/${getDecorImageSeed(dynamicVibe.decor)}/600/800`} 
-                        alt="Decor inspiration"
-                        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                        referrerPolicy="no-referrer"
+                    {isEditingDecor ? (
+                      <textarea
+                        className="w-full bg-white/50 border border-brand-brown/10 rounded-2xl p-6 text-xl font-serif leading-relaxed text-brand-brown focus:outline-none focus:ring-2 focus:ring-brand-pink/20 min-h-[160px] shadow-inner"
+                        value={dynamicVibe.decor}
+                        onChange={(e) => {
+                          const newDecor = e.target.value;
+                          setDynamicVibe({ ...dynamicVibe, decor: newDecor });
+                          saveToGathering({ customDecor: newDecor });
+                        }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-brand-brown/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    </motion.div>
+                    ) : (
+                      <p className="text-2xl font-serif leading-relaxed text-brand-brown/70 italic">
+                        "{dynamicVibe.decor}"
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Controls */}
+                  <div className="pt-6 border-t border-brand-brown/5 space-y-8">
+                    <button
+                      onClick={generateNewDecor}
+                      className="btn-secondary flex items-center gap-3 group"
+                    >
+                      <RefreshCw size={18} className="group-hover:rotate-90 transition-transform" />
+                      <span>New Suggestion</span>
+                    </button>
+
+                    <div className="space-y-4">
+                      <p className="text-[10px] uppercase tracking-[0.35em] font-bold text-brand-brown/30">Choose a photo</p>
+                      <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+                        {ATMOSPHERE_PRESETS.map((preset) => (
+                          <button
+                            key={preset.url}
+                            onClick={() => selectPreset(preset.url)}
+                            className={`flex-none w-20 h-20 rounded-xl overflow-hidden transition-all duration-300 ${
+                              selectedPresetUrl === preset.url
+                                ? 'ring-2 ring-brand-pink ring-offset-2 scale-105'
+                                : 'opacity-60 hover:opacity-100 hover:scale-105'
+                            }`}
+                          >
+                            <img src={preset.url} alt={preset.alt} className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => atmosphereUploadRef.current?.click()}
+                        className="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] font-bold text-brand-brown/40 hover:text-brand-pink transition-colors group"
+                      >
+                        <Upload size={14} className="group-hover:scale-110 transition-transform" />
+                        Upload your own photo
+                      </button>
+                      <input
+                        ref={atmosphereUploadRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAtmosphereUpload}
+                      />
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -487,7 +623,7 @@ export default function VibeStudioPage() {
                   ))}
                 </div>
 
-                {selectedRitualId && selectedRitualId !== 'skip' && (
+                {selectedRitualId !== 'skip' && (
                   <div className="pt-8 border-t border-brand-brown/5">
                     <div className="flex justify-between items-center mb-6">
                       <span className="text-[10px] uppercase tracking-widest text-brand-pink font-bold">Personalize</span>
