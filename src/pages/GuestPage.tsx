@@ -7,14 +7,22 @@ export default function GuestPage() {
   const { slug } = useParams<{ slug: string }>();
   const [gathering, setGathering] = useState<Gathering | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [savedAtmosphere, setSavedAtmosphere] = useState<string | null>(null);
+  const [savedMenu, setSavedMenu] = useState<string[]>([]);
 
   useEffect(() => {
     const all: Gathering[] = JSON.parse(localStorage.getItem('gatherings') || '[]');
-    const found = all.find(g => g.guestSlug === slug);
+    const found = all.find(g => g.id === slug) || all.find(g => g.guestSlug === slug);
     if (found) {
       setGathering(found);
     } else {
       setNotFound(true);
+    }
+    const atm = localStorage.getItem('supperEditAtmosphere');
+    if (atm) setSavedAtmosphere(atm);
+    const menu = localStorage.getItem('supperEditMenu');
+    if (menu) {
+      try { setSavedMenu(JSON.parse(menu)); } catch { /* invalid json */ }
     }
   }, [slug]);
 
@@ -42,6 +50,8 @@ export default function GuestPage() {
     gathering.customDecor ||
     VIBE_DATA[gathering.archetype as keyof typeof VIBE_DATA]?.decor ||
     null;
+  const displayPhoto = savedAtmosphere || gathering.atmospherePhoto || null;
+  const displayMenu = savedMenu.length > 0 ? savedMenu : (gathering.customMenu || []);
 
   return (
     <motion.div
@@ -89,41 +99,63 @@ export default function GuestPage() {
         </motion.div>
 
         {/* Card 2 — The Edit */}
-        {(atmosphereText || selectedRitual || gathering.customRitualText) && (
+        {(displayPhoto || atmosphereText || displayMenu.length > 0 || selectedRitual || gathering.customRitualText) && (
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15, ease: 'easeOut' }}
-            className="bg-white rounded-[2rem] shadow-[0_30px_80px_-10px_rgba(61,43,31,0.08)] px-12 py-14 space-y-10"
+            className="bg-white rounded-[2rem] shadow-[0_30px_80px_-10px_rgba(61,43,31,0.08)] overflow-hidden"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-px bg-brand-pink" />
-              <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-brand-pink">The Edit</span>
+            {displayPhoto && (
+              <div className="w-full h-48 overflow-hidden">
+                <img src={displayPhoto} alt="Evening atmosphere" className="w-full h-full object-cover" />
+              </div>
+            )}
+
+            <div className="px-12 py-14 space-y-10">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-px bg-brand-pink" />
+                <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-brand-pink">The Edit</span>
+              </div>
+
+              {atmosphereText && (
+                <div className="space-y-3">
+                  <p className="text-xs uppercase tracking-[0.35em] font-bold text-brand-brown/30">Atmosphere</p>
+                  <p className="font-serif italic text-brand-brown/60 leading-relaxed text-base">
+                    This evening is designed to feel like{' '}
+                    <span className="text-brand-brown/80">
+                      {atmosphereText.charAt(0).toLowerCase() + atmosphereText.slice(1)}
+                    </span>
+                  </p>
+                </div>
+              )}
+
+              {displayMenu.length > 0 && (
+                <div className="space-y-4 pt-2 border-t border-brand-brown/5">
+                  <p className="text-xs uppercase tracking-[0.35em] font-bold text-brand-brown/30">The Menu</p>
+                  <ol className="space-y-3">
+                    {displayMenu.map((item, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <span className="text-brand-pink/40 font-serif italic text-sm mt-0.5">0{i + 1}</span>
+                        <span className="font-serif italic text-brand-brown/70 text-base">{item}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {(selectedRitual || gathering.customRitualText) && (
+                <div className="space-y-3 pt-2 border-t border-brand-brown/5">
+                  <p className="text-xs uppercase tracking-[0.35em] font-bold text-brand-brown/30">Evening Ritual</p>
+                  <p className="text-xl font-serif text-brand-brown">
+                    {selectedRitual?.title || 'A Shared Moment'}
+                  </p>
+                  <p className="font-serif italic text-brand-brown/50 leading-relaxed text-sm">
+                    "{gathering.customRitualText || selectedRitual?.description}"
+                  </p>
+                </div>
+              )}
             </div>
-
-            {atmosphereText && (
-              <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.35em] font-bold text-brand-brown/30">Atmosphere</p>
-                <p className="font-serif italic text-brand-brown/60 leading-relaxed text-base">
-                  This evening is designed to feel like{' '}
-                  <span className="text-brand-brown/80">
-                    {atmosphereText.charAt(0).toLowerCase() + atmosphereText.slice(1)}
-                  </span>
-                </p>
-              </div>
-            )}
-
-            {(selectedRitual || gathering.customRitualText) && (
-              <div className="space-y-3 pt-2 border-t border-brand-brown/5">
-                <p className="text-xs uppercase tracking-[0.35em] font-bold text-brand-brown/30">Evening Ritual</p>
-                <p className="text-xl font-serif text-brand-brown">
-                  {selectedRitual?.title || 'A Shared Moment'}
-                </p>
-                <p className="font-serif italic text-brand-brown/50 leading-relaxed text-sm">
-                  "{gathering.customRitualText || selectedRitual?.description}"
-                </p>
-              </div>
-            )}
           </motion.div>
         )}
 

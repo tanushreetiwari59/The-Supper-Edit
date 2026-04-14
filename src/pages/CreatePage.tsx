@@ -16,7 +16,8 @@ export default function CreatePage() {
     socialIntent: SOCIAL_INTENTS[0],
     inviteMode: INVITE_MODES[0],
     date: '',
-    customHostingStyle: ''
+    customHostingStyle: '',
+    customArchetype: ''
   });
 
   const [isEditingStyle, setIsEditingStyle] = useState(false);
@@ -43,16 +44,21 @@ export default function CreatePage() {
           socialIntent: found.socialIntent,
           inviteMode: found.inviteMode,
           date: found.date,
-          customHostingStyle: found.customHostingStyle || ''
+          customHostingStyle: found.customHostingStyle || '',
+          customArchetype: found.customArchetype || ''
         });
         setEditId(id);
       }
     }
   }, [navigate, location]);
 
+  const isCustomArchetype = formData.archetype === 'Write your own...';
+  const hostPersonality = HOST_PERSONALITIES[formData.archetype as keyof typeof HOST_PERSONALITIES];
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    if (isCustomArchetype && !formData.customArchetype.trim()) return;
 
     const existing = JSON.parse(localStorage.getItem('gatherings') || '[]');
     let newId = editId || crypto.randomUUID();
@@ -61,7 +67,8 @@ export default function CreatePage() {
       ...formData,
       id: newId,
       userId: user.id,
-      customHostingStyle: formData.customHostingStyle || HOST_PERSONALITIES[formData.archetype as keyof typeof HOST_PERSONALITIES].description
+      customHostingStyle: formData.customHostingStyle || (hostPersonality?.description ?? ''),
+      customArchetype: formData.customArchetype || ''
     };
 
     if (editId) {
@@ -186,11 +193,23 @@ export default function CreatePage() {
               <div className="space-y-3">
                 <label className="text-xs uppercase tracking-[0.3em] font-bold text-brand-brown/40">Archetype</label>
                 <ThemedSelect
-                  options={ARCHETYPES}
+                  options={[...ARCHETYPES, 'Write your own...']}
                   value={formData.archetype}
-                  onChange={val => setFormData({ ...formData, archetype: val })}
+                  onChange={val => setFormData({ ...formData, archetype: val, customArchetype: '', customHostingStyle: '' })}
                   variant="card"
                 />
+                {isCustomArchetype && (
+                  <input
+                    autoFocus
+                    required
+                    type="text"
+                    placeholder="Name your archetype..."
+                    className="w-full bg-transparent border-b border-brand-pink/40 py-2 text-lg font-serif italic text-brand-brown focus:outline-none focus:border-brand-pink transition-colors placeholder:text-brand-brown/20"
+                    value={formData.customArchetype}
+                    onChange={e => setFormData(prev => ({ ...prev, customArchetype: e.target.value }))}
+                    onKeyDown={e => { if (e.key === 'Enter') e.preventDefault(); }}
+                  />
+                )}
               </div>
 
               <motion.div
@@ -216,18 +235,19 @@ export default function CreatePage() {
                 </div>
 
                 <h4 className="text-2xl font-serif italic mb-3 relative z-10">
-                  {HOST_PERSONALITIES[formData.archetype as keyof typeof HOST_PERSONALITIES].title}
+                  {hostPersonality ? hostPersonality.title : (formData.customArchetype || 'Your Archetype')}
                 </h4>
 
                 {isEditingStyle ? (
                   <textarea
                     className="w-full bg-white/50 border border-brand-pink/20 rounded-2xl p-4 text-sm font-serif italic leading-relaxed text-brand-brown/70 focus:outline-none focus:ring-2 focus:ring-brand-pink/20 min-h-[120px] relative z-10 shadow-inner"
-                    value={formData.customHostingStyle || HOST_PERSONALITIES[formData.archetype as keyof typeof HOST_PERSONALITIES].description}
+                    value={formData.customHostingStyle || (hostPersonality?.description ?? '')}
+                    placeholder={isCustomArchetype ? 'Describe your hosting style...' : undefined}
                     onChange={e => setFormData({ ...formData, customHostingStyle: e.target.value })}
                   />
                 ) : (
                   <p className="text-sm font-serif italic text-brand-brown/60 leading-relaxed relative z-10">
-                    "{formData.customHostingStyle || HOST_PERSONALITIES[formData.archetype as keyof typeof HOST_PERSONALITIES].description}"
+                    "{formData.customHostingStyle || (hostPersonality?.description ?? 'Add a hosting style description...')}"
                   </p>
                 )}
               </motion.div>
@@ -237,7 +257,7 @@ export default function CreatePage() {
                   <Users className="text-brand-brown/40" size={18} />
                 </div>
                 <p className="text-sm font-serif text-brand-brown/40 leading-relaxed">
-                  Your gathering for <span className="text-brand-brown font-bold">{formData.guestCount} guests</span> will be curated as a <span className="text-brand-brown font-bold">{formData.archetype}</span> experience.
+                  Your gathering for <span className="text-brand-brown font-bold">{formData.guestCount} guests</span> will be curated as a <span className="text-brand-brown font-bold">{isCustomArchetype ? (formData.customArchetype || 'custom archetype') : formData.archetype}</span> experience.
                 </p>
               </div>
             </div>

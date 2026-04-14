@@ -12,6 +12,7 @@ export default function VibeStudioPage() {
   const [isEditingRitual, setIsEditingRitual] = useState(true);
   const [isEditingDecor, setIsEditingDecor] = useState(false);
   const [isEditingMenu, setIsEditingMenu] = useState(false);
+  const [menuSaved, setMenuSaved] = useState(false);
   const [isEditingMoodTitle, setIsEditingMoodTitle] = useState(false);
   const [customRitualText, setCustomRitualText] = useState('');
   
@@ -53,7 +54,7 @@ export default function VibeStudioPage() {
     const found = all.find((g: Gathering) => g.id === id);
     if (found) {
       setGathering(found);
-      const initialVibe = VIBE_DATA[found.archetype as keyof typeof VIBE_DATA];
+      const initialVibe = VIBE_DATA[found.archetype as keyof typeof VIBE_DATA] ?? Object.values(VIBE_DATA)[0];
       setDynamicVibe({
         menu: found.customMenu || initialVibe.menu,
         playlist: initialVibe.playlist,
@@ -68,6 +69,9 @@ export default function VibeStudioPage() {
         setAtmospherePhoto(found.atmospherePhoto);
         const isPreset = ATMOSPHERE_PRESETS.some(p => p.url === found.atmospherePhoto);
         setSelectedPresetUrl(isPreset ? found.atmospherePhoto : null);
+      } else {
+        setAtmospherePhoto(ATMOSPHERE_PRESETS[0].url);
+        setSelectedPresetUrl(ATMOSPHERE_PRESETS[0].url);
       }
       
       const date = new Date(found.date);
@@ -132,6 +136,7 @@ export default function VibeStudioPage() {
       setAtmospherePhoto(base64);
       setSelectedPresetUrl(null);
       saveToGathering({ atmospherePhoto: base64 });
+      localStorage.setItem('supperEditAtmosphere', base64);
     };
     reader.readAsDataURL(file);
     e.target.value = '';
@@ -141,6 +146,15 @@ export default function VibeStudioPage() {
     setAtmospherePhoto(url);
     setSelectedPresetUrl(url);
     saveToGathering({ atmospherePhoto: url });
+    localStorage.setItem('supperEditAtmosphere', url);
+  };
+
+  const handleSaveMenu = () => {
+    if (!dynamicVibe) return;
+    localStorage.setItem('supperEditMenu', JSON.stringify(dynamicVibe.menu));
+    saveToGathering({ customMenu: dynamicVibe.menu });
+    setMenuSaved(true);
+    setTimeout(() => setMenuSaved(false), 2000);
   };
 
   const handlePrint = () => {
@@ -268,7 +282,7 @@ export default function VibeStudioPage() {
                       onClick={() => setIsEditingMenu(!isEditingMenu)}
                       className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/40 hover:text-brand-pink transition-colors"
                     >
-                      {isEditingMenu ? 'Done' : 'Edit'}
+                      {isEditingMenu ? 'Save' : 'Edit'}
                     </button>
                   </div>
                   <ul className="space-y-6">
@@ -327,7 +341,25 @@ export default function VibeStudioPage() {
                       + Add item
                     </button>
                   )}
-                  <div className="pt-4 flex justify-end">
+                  <div className="pt-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={handleSaveMenu}
+                        className="btn-primary flex items-center gap-2 py-3 px-6 text-sm"
+                      >
+                        Save Menu
+                      </button>
+                      {menuSaved && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -6 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0 }}
+                          className="text-[10px] uppercase tracking-widest font-bold text-brand-pink"
+                        >
+                          Menu saved
+                        </motion.span>
+                      )}
+                    </div>
                     <button
                       onClick={handlePrint}
                       className="btn-secondary flex items-center gap-3 group"
@@ -637,6 +669,7 @@ export default function VibeStudioPage() {
                     {isEditingRitual ? (
                       <textarea
                         className="w-full bg-white/50 border border-brand-brown/10 rounded-xl p-4 text-sm text-brand-brown focus:outline-none focus:ring-2 focus:ring-brand-pink/20 min-h-[100px]"
+                        placeholder="Add a personal note or intention for your guests..."
                         value={customRitualText}
                         onChange={(e) => {
                           setCustomRitualText(e.target.value);
@@ -644,7 +677,9 @@ export default function VibeStudioPage() {
                         }}
                       />
                     ) : (
-                      <p className="text-sm font-serif italic text-brand-brown/70 leading-relaxed bg-brand-pink/5 p-4 rounded-xl border border-brand-pink/10">"{customRitualText}"</p>
+                      <p className="text-sm font-serif italic text-brand-brown/70 leading-relaxed bg-brand-pink/5 p-4 rounded-xl border border-brand-pink/10">
+                        {customRitualText ? `"${customRitualText}"` : <span className="opacity-40">Add a personal note or intention for your guests...</span>}
+                      </p>
                     )}
                   </div>
                 )}

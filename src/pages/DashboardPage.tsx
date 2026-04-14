@@ -54,6 +54,7 @@ export default function DashboardPage() {
   const [gatherings, setGatherings] = useState<Gathering[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [printingGathering, setPrintingGathering] = useState<Gathering | null>(null);
+  const [printMenu, setPrintMenu] = useState<string[]>([]);
   const [hostingSignature, setHostingSignature] = useState<HostingSignature | null>(null);
   const navigate = useNavigate();
 
@@ -89,10 +90,14 @@ export default function DashboardPage() {
   };
 
   const handlePrint = (g: Gathering) => {
+    const saved = localStorage.getItem('supperEditMenu');
+    if (saved) {
+      try { setPrintMenu(JSON.parse(saved)); } catch { setPrintMenu([]); }
+    } else {
+      setPrintMenu(g.customMenu || []);
+    }
     setPrintingGathering(g);
-    setTimeout(() => {
-      window.print();
-    }, 100);
+    setTimeout(() => window.print(), 100);
   };
 
   const getStatus = (g: Gathering) => {
@@ -364,7 +369,14 @@ export default function DashboardPage() {
                 <div>
                   <h3 className="text-[10px] uppercase tracking-widest text-brand-pink font-bold mb-4">The Menu</h3>
                   <ul className="space-y-4">
-                    {printingGathering.seasonalMenu ? (
+                    {printMenu.length > 0 ? (
+                      printMenu.map((item, i) => (
+                        <li key={i} className="text-sm font-serif italic flex items-center gap-3">
+                          <span className="text-brand-pink/40 text-xs">0{i + 1}</span>
+                          {item}
+                        </li>
+                      ))
+                    ) : printingGathering.seasonalMenu ? (
                       <li className="text-sm font-serif italic">{printingGathering.seasonalMenu}</li>
                     ) : (
                       <li className="text-sm opacity-40 italic">Menu not yet finalized</li>

@@ -36,6 +36,7 @@ export interface Gathering {
   };
   guestSlug?: string;
   atmospherePhoto?: string;
+  customArchetype?: string;
 }
 
 export const HOST_PERSONALITIES = {

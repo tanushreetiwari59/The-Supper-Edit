@@ -51,21 +51,35 @@ export default function InvitationPage() {
     window.print();
   };
 
+  const getBaseUrl = () => {
+    return (process.env.VITE_APP_URL as string | undefined)?.replace(/\/$/, '') || window.location.origin;
+  };
+
+  const buildGuestUrl = () => {
+    if (!gathering) return '';
+    return `${getBaseUrl()}/g/${gathering.id}`;
+  };
+
   const copyGuestLink = () => {
-    if (!gathering) return;
-    const titleSlug = gathering.title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .trim()
-      .replace(/\s+/g, '-');
-    const slug = `${titleSlug}-${gathering.date}`;
-    const all = JSON.parse(localStorage.getItem('gatherings') || '[]');
-    const updated = all.map((g: Gathering) => g.id === gathering.id ? { ...g, guestSlug: slug } : g);
-    localStorage.setItem('gatherings', JSON.stringify(updated));
-    const url = `${window.location.origin}/g/${slug}`;
+    const url = buildGuestUrl();
+    if (!url) return;
     navigator.clipboard.writeText(url);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  const handleShare = async () => {
+    const url = buildGuestUrl();
+    if (!url) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: gathering?.title, text: `You're invited to ${gathering?.title}`, url });
+      } catch (_) { /* user cancelled */ }
+    } else {
+      navigator.clipboard.writeText(url);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }
   };
 
   if (!gathering) return (
@@ -284,7 +298,7 @@ export default function InvitationPage() {
               <button onClick={handlePrint} className="btn-secondary flex items-center justify-center gap-2 py-4">
                 <Printer size={18} /> Print
               </button>
-              <button className="btn-secondary flex items-center justify-center gap-2 py-4">
+              <button onClick={handleShare} className="btn-secondary flex items-center justify-center gap-2 py-4">
                 <Share2 size={18} /> Share
               </button>
             </div>

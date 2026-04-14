@@ -66,24 +66,31 @@ function Navigation() {
   );
 }
 
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/create" element={<CreatePage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/vibe-studio" element={<VibeStudioPage />} />
+        <Route path="/invitation" element={<InvitationPage />} />
+        <Route path="/memory" element={<MemoryPage />} />
+        <Route path="/feed" element={<MemoryFeedPage />} />
+        <Route path="/g/:slug" element={<GuestPage />} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen pb-32">
         <Navigation />
-        <AnimatePresence mode="wait">
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/create" element={<CreatePage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/vibe-studio" element={<VibeStudioPage />} />
-            <Route path="/invitation" element={<InvitationPage />} />
-            <Route path="/memory" element={<MemoryPage />} />
-            <Route path="/feed" element={<MemoryFeedPage />} />
-            <Route path="/g/:slug" element={<GuestPage />} />
-          </Routes>
-        </AnimatePresence>
+        <AnimatedRoutes />
       </div>
     </BrowserRouter>
   );
