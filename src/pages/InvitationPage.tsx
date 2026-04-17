@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Wine, Sparkles, Flower, Share2, Palette, MessageCircle, Type, Printer, ArrowLeft, Check, Link2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Gathering, THEMES, WARMUP_PROMPTS, TYPOGRAPHY_STYLES } from '../types';
+import { Gathering, THEMES, WARMUP_PROMPTS, TYPOGRAPHY_STYLES, SUPPER_RITUALS } from '../types';
 import { ThemedSelect } from '../components/ThemedSelect';
 
 export default function InvitationPage() {
@@ -51,17 +51,52 @@ export default function InvitationPage() {
     window.print();
   };
 
-  const getBaseUrl = () => {
-    return (process.env.VITE_APP_URL as string | undefined)?.replace(/\/$/, '') || window.location.origin;
-  };
-
-  const buildGuestUrl = () => {
+  const buildAndSaveGuestSnapshot = (): string => {
     if (!gathering) return '';
-    return `${getBaseUrl()}/g/${gathering.id}`;
+
+    const slugify = (str: string) =>
+      str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const dateStr = gathering.date.split('T')[0];
+    const gatheringId = `${slugify(gathering.title)}-${dateStr}`;
+
+    const atmospherePhoto =
+      localStorage.getItem('supperEditAtmospherePhoto') ||
+      localStorage.getItem('supperEditAtmosphere') ||
+      gathering.atmospherePhoto ||
+      null;
+
+    let menu: string[] = gathering.customMenu || [];
+    try {
+      const saved = localStorage.getItem('supperEditMenu');
+      if (saved) menu = JSON.parse(saved);
+    } catch { /* invalid json */ }
+
+    const ritual = SUPPER_RITUALS.find(r => r.title === gathering.selectedRitualId) ?? null;
+
+    const snapshot = {
+      title: gathering.title,
+      date: gathering.date,
+      hostName,
+      archetype: gathering.archetype,
+      socialIntent: gathering.socialIntent,
+      atmosphereText: gathering.customDecor || gathering.seasonalAtmosphere || null,
+      atmospherePhoto,
+      selectedRitualId: gathering.selectedRitualId || null,
+      ritualTitle: ritual?.title || gathering.selectedRitualId || null,
+      ritualDescription: gathering.customRitualText || ritual?.description || null,
+      menu,
+      theme,
+      typographyStyle,
+      warmupPrompt: effectiveWarmupPrompt,
+    };
+
+    localStorage.setItem(`guestGathering_${gatheringId}`, JSON.stringify(snapshot));
+
+    return `${window.location.origin}/g/${gatheringId}`;
   };
 
   const copyGuestLink = () => {
-    const url = buildGuestUrl();
+    const url = buildAndSaveGuestSnapshot();
     if (!url) return;
     navigator.clipboard.writeText(url);
     setLinkCopied(true);
@@ -69,7 +104,7 @@ export default function InvitationPage() {
   };
 
   const handleShare = async () => {
-    const url = buildGuestUrl();
+    const url = buildAndSaveGuestSnapshot();
     if (!url) return;
     if (navigator.share) {
       try {
