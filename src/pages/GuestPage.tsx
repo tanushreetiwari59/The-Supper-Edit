@@ -17,6 +17,9 @@ type GuestSnapshot = {
   theme: string;
   typographyStyle: string;
   warmupPrompt: string;
+  seasonalMenu?: string | null;
+  seasonalAtmosphere?: string | null;
+  seasonalSoundscape?: string | null;
 };
 
 export default function GuestPage() {
@@ -80,7 +83,7 @@ export default function GuestPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="bg-white rounded-[2rem] shadow-[0_30px_80px_-10px_rgba(61,43,31,0.08)] px-12 py-16 flex flex-col items-center text-center relative overflow-hidden"
+          className="bg-white rounded-[2rem] shadow-[0_30px_80px_-10px_rgba(61,43,31,0.08)] px-6 sm:px-12 py-10 sm:py-16 flex flex-col items-center text-center relative overflow-hidden"
         >
           <div className="absolute top-6 left-6 w-10 h-10 border-t border-l border-brand-pink/20" />
           <div className="absolute top-6 right-6 w-10 h-10 border-t border-r border-brand-pink/20" />
@@ -133,7 +136,7 @@ export default function GuestPage() {
               </div>
             )}
 
-            <div className="px-12 py-14 space-y-10">
+            <div className="px-6 sm:px-12 py-10 sm:py-14 space-y-10">
               <div className="flex items-center gap-3">
                 <div className="w-6 h-px bg-brand-pink" />
                 <span className="text-[10px] uppercase tracking-[0.5em] font-bold text-brand-pink">The Edit</span>
@@ -143,11 +146,31 @@ export default function GuestPage() {
                 <div className="space-y-3">
                   <p className="text-xs uppercase tracking-[0.35em] font-bold text-brand-brown/30">Atmosphere</p>
                   <p className="font-serif italic text-brand-brown/60 leading-relaxed text-base">
-                    This evening is designed to feel like{' '}
-                    <span className="text-brand-brown/80">
-                      {snapshot.atmosphereText.charAt(0).toLowerCase() + snapshot.atmosphereText.slice(1)}
-                    </span>
+                    This evening is designed to feel like {snapshot.atmosphereText.charAt(0).toLowerCase() + snapshot.atmosphereText.slice(1)}
                   </p>
+                </div>
+              )}
+
+              {(snapshot.seasonalMenu || snapshot.seasonalAtmosphere || snapshot.seasonalSoundscape) && (
+                <div className="space-y-3 pt-2 border-t border-brand-brown/5">
+                  <p className="text-xs uppercase tracking-[0.35em] font-bold text-brand-brown/30">Tonight's Vibe</p>
+                  <div className="flex flex-wrap gap-2">
+                    {snapshot.seasonalMenu && (
+                      <span className="inline-block px-3 py-1 rounded-full bg-brand-brown/5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-brown/40">
+                        {snapshot.seasonalMenu}
+                      </span>
+                    )}
+                    {snapshot.seasonalAtmosphere && (
+                      <span className="inline-block px-3 py-1 rounded-full bg-brand-brown/5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-brown/40">
+                        {snapshot.seasonalAtmosphere}
+                      </span>
+                    )}
+                    {snapshot.seasonalSoundscape && (
+                      <span className="inline-block px-3 py-1 rounded-full bg-brand-brown/5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-brown/40">
+                        {snapshot.seasonalSoundscape}
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
 

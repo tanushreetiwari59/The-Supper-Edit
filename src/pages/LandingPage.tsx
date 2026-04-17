@@ -30,7 +30,7 @@ export default function LandingPage() {
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="flex items-center gap-10"
+          className="flex items-center gap-4 sm:gap-10"
         >
           <Link to="/auth" className="text-sm uppercase tracking-[0.2em] font-bold text-brand-brown/60 hover:text-brand-pink transition-colors">Login</Link>
           <Link to="/auth" className="btn-primary py-3 px-8 text-sm">
@@ -40,8 +40,8 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <main className="relative z-10 max-w-7xl mx-auto px-8 md:px-16 pt-12 md:pt-24 pb-32">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 md:px-16 pt-12 md:pt-24 pb-32">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
           {/* Left Side: Content */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}

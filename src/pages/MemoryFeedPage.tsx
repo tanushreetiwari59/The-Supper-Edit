@@ -40,7 +40,7 @@ export default function MemoryFeedPage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-w-6xl mx-auto px-8 pt-24 pb-32"
+      className="max-w-6xl mx-auto px-4 sm:px-8 pt-20 sm:pt-24 pb-32"
     >
       <Link to="/dashboard" className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.4em] font-bold text-brand-brown/40 hover:text-brand-pink transition-colors mb-12 group">
         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
@@ -55,7 +55,7 @@ export default function MemoryFeedPage() {
           <div className="w-8 h-px bg-brand-pink" />
           <span className="text-xs uppercase tracking-[0.5em] font-bold text-brand-pink">Journal</span>
         </motion.div>
-        <h2 className="text-7xl tracking-tighter">Memory Feed</h2>
+        <h2 className="text-4xl md:text-7xl tracking-tighter">Memory Feed</h2>
         <p className="text-xl text-brand-brown/40 mt-4 font-serif italic">A living archive of your intentional gatherings.</p>
       </header>
 
@@ -69,7 +69,7 @@ export default function MemoryFeedPage() {
           <Link to="/dashboard" className="btn-secondary">Go to Dashboard</Link>
         </div>
       ) : (
-        <div className="space-y-32 relative before:absolute before:left-1/2 before:top-0 before:bottom-0 before:w-px before:bg-brand-brown/5 before:-translate-x-1/2">
+        <div className="space-y-16 md:space-y-32 relative md:before:absolute md:before:left-1/2 md:before:top-0 md:before:bottom-0 md:before:w-px md:before:bg-brand-brown/5 md:before:-translate-x-1/2">
           {memories.map((m, i) => (
             <motion.div
               key={m.id}
@@ -110,7 +110,7 @@ export default function MemoryFeedPage() {
                 </div>
               </div>
 
-              <div className="relative z-10 w-6 h-6 rounded-full bg-brand-pink border-[6px] border-brand-beige shadow-xl ring-8 ring-brand-pink/5" />
+              <div className="hidden md:block relative z-10 w-6 h-6 rounded-full bg-brand-pink border-[6px] border-brand-beige shadow-xl ring-8 ring-brand-pink/5" />
 
               <div className="flex-1 w-full">
                 <motion.div

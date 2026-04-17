@@ -60,11 +60,13 @@ export default function VibeStudioPage() {
       setGathering(found);
       const initialVibe = VIBE_DATA[found.archetype as keyof typeof VIBE_DATA] ?? Object.values(VIBE_DATA)[0];
       const decor = found.customDecor || initialVibe.decor;
+      const initialMenu = found.customMenu || initialVibe.menu;
       setDynamicVibe({
-        menu: found.customMenu || initialVibe.menu,
+        menu: initialMenu,
         playlist: initialVibe.playlist,
         decor
       });
+      setLocalMenu(initialMenu);
       setLocalDecor(decor);
 
       const shuffled = [...SUPPER_RITUALS].sort(() => 0.5 - Math.random());
@@ -228,13 +230,13 @@ export default function VibeStudioPage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-w-7xl mx-auto px-8 pt-24 pb-32"
+      className="max-w-7xl mx-auto px-4 sm:px-8 pt-20 sm:pt-24 pb-32"
     >
       <Link to="/dashboard" className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.4em] font-bold text-brand-brown/40 hover:text-brand-pink transition-colors mb-12 group">
         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
       </Link>
 
-      <header className="mb-20 text-center relative">
+      <header className="mb-10 md:mb-20 text-center relative">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -244,8 +246,8 @@ export default function VibeStudioPage() {
           <span className="text-xs uppercase tracking-[0.5em] font-bold text-brand-pink">Vibe Studio</span>
           <div className="w-8 h-px bg-brand-pink/30" />
         </motion.div>
-        <h2 className="text-7xl tracking-tighter mb-4">{gathering.title}</h2>
-        <p className="font-serif italic text-2xl text-brand-brown/40 mb-12">{gathering.archetype}</p>
+        <h2 className="text-4xl md:text-7xl tracking-tighter mb-4">{gathering.title}</h2>
+        <p className="font-serif italic text-lg md:text-2xl text-brand-brown/40 mb-8 md:mb-12">{gathering.archetype}</p>
 
         <button
           onClick={generateNewIdeas}
@@ -256,18 +258,18 @@ export default function VibeStudioPage() {
         </button>
       </header>
 
-      <div className="flex justify-center gap-6 mb-16">
+      <div className="flex flex-wrap justify-center gap-3 sm:gap-6 mb-16">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-3 px-8 py-4 rounded-2xl transition-all duration-500 ${
+            className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-8 py-3 sm:py-4 rounded-2xl transition-all duration-500 ${
               activeTab === tab.id
                 ? 'bg-brand-brown text-white shadow-xl shadow-brand-brown/20 scale-105'
                 : 'bg-white/50 text-brand-brown/60 hover:bg-white hover:text-brand-brown border border-brand-brown/5'
             }`}
           >
-            <tab.icon size={20} className={activeTab === tab.id ? 'text-brand-pink' : ''} />
+            <tab.icon size={18} className={activeTab === tab.id ? 'text-brand-pink' : ''} />
             <span className="text-xs uppercase tracking-[0.2em] font-bold">{tab.label}</span>
           </button>
         ))}
@@ -300,7 +302,7 @@ export default function VibeStudioPage() {
                     </motion.div>
                   )}
                   <div className="flex justify-between items-end border-b border-brand-brown/5 pb-6">
-                    <h3 className="text-4xl tracking-tight">The Tasting Edit</h3>
+                    <h3 className="text-2xl md:text-4xl tracking-tight">The Tasting Edit</h3>
                     <button
                       onClick={() => {
                         if (isEditingMenu) {
@@ -335,7 +337,7 @@ export default function VibeStudioPage() {
                             />
                           ) : (
                             <>
-                              <span className="text-2xl font-serif italic leading-tight text-brand-brown/80">{item}</span>
+                              <span className="text-xl md:text-2xl font-serif italic leading-tight text-brand-brown/80">{item}</span>
                               <div className="h-px bg-brand-brown/5 mt-4 w-full" />
                             </>
                           )}
@@ -403,7 +405,7 @@ export default function VibeStudioPage() {
                   className="space-y-16"
                 >
                   <div className="flex justify-between items-end border-b border-brand-brown/5 pb-8">
-                    <h3 className="text-5xl tracking-tight">Sonic Journey</h3>
+                    <h3 className="text-3xl md:text-5xl tracking-tight">Sonic Journey</h3>
                     <span className="text-xs uppercase tracking-[0.3em] font-bold text-brand-brown/30">Atmospheric Audio</span>
                   </div>
                   <div className="grid grid-cols-1 gap-10">
@@ -417,13 +419,13 @@ export default function VibeStudioPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
                         key={phase.label}
-                        className={`p-10 rounded-[2rem] flex flex-col md:flex-row justify-between items-center gap-8 ${phase.color}`}
+                        className={`p-6 md:p-10 rounded-[2rem] flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8 ${phase.color}`}
                       >
                         <div className="text-center md:text-left">
                           <span className={`text-[10px] uppercase tracking-[0.4em] font-bold mb-3 block ${phase.color.includes('text-white') ? 'text-brand-pink' : 'text-brand-pink'}`}>
                             {phase.label}
                           </span>
-                          <p className="text-4xl font-serif italic tracking-tight">{phase.vibe}</p>
+                          <p className="text-2xl md:text-4xl font-serif italic tracking-tight">{phase.vibe}</p>
                         </div>
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center border ${phase.color.includes('text-white') ? 'border-white/20' : 'border-brand-brown/10'}`}>
                           <Music size={20} className={phase.color.includes('text-white') ? 'text-white' : 'text-brand-brown'} />
@@ -472,7 +474,7 @@ export default function VibeStudioPage() {
                   {/* Atmosphere description */}
                   <div>
                     <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-4xl tracking-tight">Atmosphere</h3>
+                      <h3 className="text-2xl md:text-4xl tracking-tight">Atmosphere</h3>
                       <button
                         onClick={() => {
                           if (isEditingDecor) {
@@ -613,7 +615,7 @@ export default function VibeStudioPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 { label: 'Seasonal Menu', key: 'menu' as const },
                 { label: 'Atmosphere',    key: 'decor' as const },

@@ -117,7 +117,7 @@ export default function DashboardPage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-w-7xl mx-auto px-8 pt-24 pb-32"
+      className="max-w-7xl mx-auto px-4 sm:px-8 pt-20 sm:pt-24 pb-32"
     >
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-20 gap-8">
         <div>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
             <div className="w-8 h-px bg-brand-pink" />
             <span className="text-xs uppercase tracking-[0.4em] font-bold text-brand-pink">Welcome back, {user?.name}</span>
           </motion.div>
-          <h2 className="text-7xl tracking-tighter">Your Gatherings</h2>
+          <h2 className="text-4xl md:text-7xl tracking-tighter">Your Gatherings</h2>
         </div>
         <Link to="/create" className="btn-primary flex items-center gap-3 group">
           Start Designing <Plus size={20} className="group-hover:rotate-90 transition-transform duration-500" />

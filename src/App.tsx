@@ -40,8 +40,8 @@ function Navigation() {
   ];
 
   return (
-    <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-brand-brown text-brand-beige px-6 py-3 rounded-full flex items-center gap-8 shadow-2xl z-50">
-      <Link to="/" className="hover:text-brand-pink transition-colors">
+    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-brand-brown text-brand-beige px-3 sm:px-6 py-3 rounded-full flex items-center gap-2 sm:gap-5 shadow-2xl z-50">
+      <Link to="/" className="hover:text-brand-pink transition-colors p-1">
         <Home size={20} />
       </Link>
       <div className="w-px h-4 bg-brand-beige/20" />
@@ -49,18 +49,18 @@ function Navigation() {
         <Link
           key={item.path}
           to={item.path}
-          className={`flex flex-col items-center gap-1 transition-colors ${
+          className={`flex flex-col items-center gap-1 transition-colors p-1 ${
             location.pathname.startsWith(item.path) ? 'text-brand-pink' : 'hover:text-brand-pink'
           }`}
         >
           <item.icon size={20} />
-          <span className="text-[10px] uppercase tracking-tighter font-semibold">{item.label}</span>
+          <span className="hidden sm:inline text-[10px] uppercase tracking-tighter font-semibold">{item.label}</span>
         </Link>
       ))}
       <div className="w-px h-4 bg-brand-beige/20" />
-      <button onClick={handleLogout} className="hover:text-red-400 transition-colors flex flex-col items-center gap-1">
+      <button onClick={handleLogout} className="hover:text-red-400 transition-colors flex flex-col items-center gap-1 p-1">
         <LogOut size={20} />
-        <span className="text-[10px] uppercase tracking-tighter font-semibold">Exit</span>
+        <span className="hidden sm:inline text-[10px] uppercase tracking-tighter font-semibold">Exit</span>
       </button>
     </nav>
   );

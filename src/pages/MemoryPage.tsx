@@ -83,7 +83,7 @@ export default function MemoryPage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-w-7xl mx-auto px-8 pt-24 pb-32"
+      className="max-w-7xl mx-auto px-4 sm:px-8 pt-20 sm:pt-24 pb-32"
     >
       <Link to="/dashboard" className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.4em] font-bold text-brand-brown/40 hover:text-brand-pink transition-colors mb-12 group">
         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
@@ -100,7 +100,7 @@ export default function MemoryPage() {
               <div className="w-8 h-px bg-brand-pink" />
               <span className="text-xs uppercase tracking-[0.5em] font-bold text-brand-pink">Step 03</span>
             </motion.div>
-            <h2 className="text-6xl tracking-tighter">Memory Capsule</h2>
+            <h2 className="text-4xl md:text-6xl tracking-tighter">Memory Capsule</h2>
             <p className="text-lg text-brand-brown/40 mt-4 font-serif italic">Archive the magic before it fades into the night.</p>
           </header>
 
