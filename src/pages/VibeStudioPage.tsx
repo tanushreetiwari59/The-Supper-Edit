@@ -4,6 +4,16 @@ import { Utensils, Music, Palette, Info, RefreshCw, Sparkles, CloudSun, Printer,
 import { Link } from 'react-router-dom';
 import { Gathering, VIBE_DATA, VIBE_POOLS, SUPPER_RITUALS, SEASONAL_POOLS } from '../types';
 
+const ATMOSPHERE_PRESETS = [
+  { url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400', alt: 'Candlelit dinner table' },
+  { url: 'https://images.unsplash.com/photo-1490750967868-88df5691cc8a?w=400', alt: 'Wildflowers on linen' },
+  { url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400', alt: 'Elegant table setting' },
+  { url: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=400', alt: 'Morning brunch spread' },
+  { url: 'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=400', alt: 'Warm ambient dining room' },
+  { url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400', alt: 'Wine being poured' },
+  { url: 'https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?w=400', alt: 'Rustic table with candles' },
+];
+
 export default function VibeStudioPage() {
   const [gathering, setGathering] = useState<Gathering | null>(null);
   const [activeTab, setActiveTab] = useState<'menu' | 'playlist' | 'decor'>('menu');
@@ -14,9 +24,12 @@ export default function VibeStudioPage() {
   const [isEditingMenu, setIsEditingMenu] = useState(false);
   const [localMenu, setLocalMenu] = useState<string[]>([]);
   const [menuSaved, setMenuSaved] = useState(false);
+  const [atmosphereSaved, setAtmosphereSaved] = useState(false);
   const [isEditingMoodTitle, setIsEditingMoodTitle] = useState(false);
+  const [localMoodTitle, setLocalMoodTitle] = useState('');
   const [customRitualText, setCustomRitualText] = useState('');
-  
+  const [localDecor, setLocalDecor] = useState('');
+
   const [season, setSeason] = useState<keyof typeof SEASONAL_POOLS>('Spring');
   const [seasonalSuggestions, setSeasonalSuggestions] = useState({
     menu: '',
@@ -33,16 +46,6 @@ export default function VibeStudioPage() {
   const [selectedPresetUrl, setSelectedPresetUrl] = useState<string | null>(null);
   const atmosphereUploadRef = useRef<HTMLInputElement>(null);
 
-  const ATMOSPHERE_PRESETS = [
-    { url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400', alt: 'Candlelit dinner table' },
-    { url: 'https://images.unsplash.com/photo-1490750967868-88df5691cc8a?w=400', alt: 'Wildflowers on linen' },
-    { url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400', alt: 'Elegant table setting' },
-    { url: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=400', alt: 'Morning brunch spread' },
-    { url: 'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=400', alt: 'Warm ambient dining room' },
-    { url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400', alt: 'Wine being poured' },
-    { url: 'https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?w=400', alt: 'Rustic table with candles' },
-  ];
-
   const [dynamicVibe, setDynamicVibe] = useState<{
     menu: string[];
     playlist: { arrival: string; peak: string; closing: string };
@@ -56,12 +59,14 @@ export default function VibeStudioPage() {
     if (found) {
       setGathering(found);
       const initialVibe = VIBE_DATA[found.archetype as keyof typeof VIBE_DATA] ?? Object.values(VIBE_DATA)[0];
+      const decor = found.customDecor || initialVibe.decor;
       setDynamicVibe({
         menu: found.customMenu || initialVibe.menu,
         playlist: initialVibe.playlist,
-        decor: found.customDecor || initialVibe.decor
+        decor
       });
-      
+      setLocalDecor(decor);
+
       const shuffled = [...SUPPER_RITUALS].sort(() => 0.5 - Math.random());
       setRitualOptions(shuffled.slice(0, 3));
       setSelectedRitualId(found.selectedRitualId || null);
@@ -74,7 +79,7 @@ export default function VibeStudioPage() {
         setAtmospherePhoto(ATMOSPHERE_PRESETS[0].url);
         setSelectedPresetUrl(ATMOSPHERE_PRESETS[0].url);
       }
-      
+
       const date = new Date(found.date);
       const month = date.getMonth();
       let currentSeason: keyof typeof SEASONAL_POOLS = 'Spring';
@@ -83,8 +88,8 @@ export default function VibeStudioPage() {
       else if (month >= 8 && month <= 10) currentSeason = 'Autumn';
       else currentSeason = 'Winter';
       setSeason(currentSeason);
-      
-      const moodName = found.customSeasonName || currentSeason;
+      setLocalMoodTitle(found.customSeasonName || currentSeason);
+
       setSeasonalSuggestions({
         menu: found.seasonalMenu || SEASONAL_POOLS[currentSeason].menu[0],
         decor: found.seasonalAtmosphere || SEASONAL_POOLS[currentSeason].decor[0],
@@ -126,10 +131,8 @@ export default function VibeStudioPage() {
     const getRandom = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
     if (dynamicVibe) {
       const newDecor = getRandom(VIBE_POOLS.decor);
-      setDynamicVibe({
-        ...dynamicVibe,
-        decor: newDecor
-      });
+      setDynamicVibe({ ...dynamicVibe, decor: newDecor });
+      setLocalDecor(newDecor);
       saveToGathering({ customDecor: newDecor });
     }
   };
@@ -154,6 +157,17 @@ export default function VibeStudioPage() {
     setSelectedPresetUrl(url);
     saveToGathering({ atmospherePhoto: url });
     localStorage.setItem('supperEditAtmosphere', url);
+  };
+
+  const handleSaveAtmosphere = () => {
+    if (dynamicVibe) {
+      setDynamicVibe({ ...dynamicVibe, decor: localDecor });
+      saveToGathering({ customDecor: localDecor });
+    }
+    localStorage.setItem('supperEditAtmosphere', localDecor);
+    localStorage.setItem('supperEditAtmospherePhoto', atmospherePhoto || '');
+    setAtmosphereSaved(true);
+    setTimeout(() => setAtmosphereSaved(false), 2000);
   };
 
   const handleSaveMenu = () => {
@@ -186,6 +200,7 @@ export default function VibeStudioPage() {
       decor: getRandom(VIBE_POOLS.decor)
     };
     setDynamicVibe(newVibe);
+    setLocalDecor(newVibe.decor);
     saveToGathering({
       customMenu: newVibe.menu,
       customDecor: newVibe.decor
@@ -231,12 +246,12 @@ export default function VibeStudioPage() {
         </motion.div>
         <h2 className="text-7xl tracking-tighter mb-4">{gathering.title}</h2>
         <p className="font-serif italic text-2xl text-brand-brown/40 mb-12">{gathering.archetype}</p>
-        
-        <button 
+
+        <button
           onClick={generateNewIdeas}
           className="btn-secondary flex items-center gap-3 mx-auto group"
         >
-          <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-700" /> 
+          <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-700" />
           <span>Refresh All Suggestions</span>
         </button>
       </header>
@@ -247,8 +262,8 @@ export default function VibeStudioPage() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={`flex items-center gap-3 px-8 py-4 rounded-2xl transition-all duration-500 ${
-              activeTab === tab.id 
-                ? 'bg-brand-brown text-white shadow-xl shadow-brand-brown/20 scale-105' 
+              activeTab === tab.id
+                ? 'bg-brand-brown text-white shadow-xl shadow-brand-brown/20 scale-105'
                 : 'bg-white/50 text-brand-brown/60 hover:bg-white hover:text-brand-brown border border-brand-brown/5'
             }`}
           >
@@ -380,7 +395,7 @@ export default function VibeStudioPage() {
 
               {activeTab === 'playlist' && (
                 <motion.div
-                  key={`playlist-${dynamicVibe.playlist.arrival}`}
+                  key="playlist"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -397,11 +412,11 @@ export default function VibeStudioPage() {
                       { label: 'The Peak', vibe: dynamicVibe.playlist.peak, color: 'bg-brand-brown text-white' },
                       { label: 'Closing', vibe: dynamicVibe.playlist.closing, color: 'bg-brand-pink/5' }
                     ].map((phase, i) => (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        key={phase.label} 
+                        key={phase.label}
                         className={`p-10 rounded-[2rem] flex flex-col md:flex-row justify-between items-center gap-8 ${phase.color}`}
                       >
                         <div className="text-center md:text-left">
@@ -421,7 +436,7 @@ export default function VibeStudioPage() {
 
               {activeTab === 'decor' && (
                 <motion.div
-                  key={`decor-${dynamicVibe.decor}`}
+                  key="decor"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -459,7 +474,17 @@ export default function VibeStudioPage() {
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-4xl tracking-tight">Atmosphere</h3>
                       <button
-                        onClick={() => setIsEditingDecor(!isEditingDecor)}
+                        onClick={() => {
+                          if (isEditingDecor) {
+                            // Saving: commit localDecor to dynamicVibe and gathering
+                            setDynamicVibe({ ...dynamicVibe, decor: localDecor });
+                            saveToGathering({ customDecor: localDecor });
+                          } else {
+                            // Entering edit: sync localDecor from current value
+                            setLocalDecor(dynamicVibe.decor);
+                          }
+                          setIsEditingDecor(!isEditingDecor);
+                        }}
                         className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/40 hover:text-brand-pink transition-colors"
                       >
                         {isEditingDecor ? 'Save' : 'Edit Details'}
@@ -468,12 +493,8 @@ export default function VibeStudioPage() {
                     {isEditingDecor ? (
                       <textarea
                         className="w-full bg-white/50 border border-brand-brown/10 rounded-2xl p-6 text-xl font-serif leading-relaxed text-brand-brown focus:outline-none focus:ring-2 focus:ring-brand-pink/20 min-h-[160px] shadow-inner"
-                        value={dynamicVibe.decor}
-                        onChange={(e) => {
-                          const newDecor = e.target.value;
-                          setDynamicVibe({ ...dynamicVibe, decor: newDecor });
-                          saveToGathering({ customDecor: newDecor });
-                        }}
+                        value={localDecor}
+                        onChange={(e) => setLocalDecor(e.target.value)}
                       />
                     ) : (
                       <p className="text-2xl font-serif leading-relaxed text-brand-brown/70 italic">
@@ -484,6 +505,24 @@ export default function VibeStudioPage() {
 
                   {/* Controls */}
                   <div className="pt-6 border-t border-brand-brown/5 space-y-8">
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={handleSaveAtmosphere}
+                        className="btn-primary flex items-center gap-2 py-3 px-6 text-sm"
+                      >
+                        Save Atmosphere
+                      </button>
+                      {atmosphereSaved && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -6 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0 }}
+                          className="text-[10px] uppercase tracking-widest font-bold text-brand-pink"
+                        >
+                          Atmosphere saved
+                        </motion.span>
+                      )}
+                    </div>
                     <button
                       onClick={generateNewDecor}
                       className="btn-secondary flex items-center gap-3 group"
@@ -546,8 +585,8 @@ export default function VibeStudioPage() {
                   <input
                     type="text"
                     className="bg-transparent border-b border-brand-blue/30 text-[10px] uppercase tracking-[0.3em] text-brand-blue font-bold focus:outline-none w-28"
-                    value={gathering.customSeasonName || season}
-                    onChange={(e) => { saveToGathering({ customSeasonName: e.target.value }); }}
+                    value={localMoodTitle}
+                    onChange={(e) => setLocalMoodTitle(e.target.value)}
                     autoFocus
                   />
                 ) : (
@@ -556,7 +595,14 @@ export default function VibeStudioPage() {
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setIsEditingMoodTitle(!isEditingMoodTitle)}
+                  onClick={() => {
+                    if (isEditingMoodTitle) {
+                      saveToGathering({ customSeasonName: localMoodTitle });
+                    } else {
+                      setLocalMoodTitle(gathering.customSeasonName || season);
+                    }
+                    setIsEditingMoodTitle(!isEditingMoodTitle);
+                  }}
                   className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/20 hover:text-brand-blue transition-colors"
                 >
                   {isEditingMoodTitle ? 'Save' : 'Edit'}
@@ -577,7 +623,15 @@ export default function VibeStudioPage() {
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-[10px] uppercase tracking-widest text-brand-brown/30 font-bold">{item.label}</span>
                     <button
-                      onClick={() => setIsEditingSeason({ ...isEditingSeason, [item.key]: !isEditingSeason[item.key] })}
+                      onClick={() => {
+                        if (isEditingSeason[item.key]) {
+                          // Saving: persist the current local value to gathering
+                          saveToGathering({
+                            [item.key === 'menu' ? 'seasonalMenu' : item.key === 'decor' ? 'seasonalAtmosphere' : 'seasonalSoundscape']: seasonalSuggestions[item.key]
+                          });
+                        }
+                        setIsEditingSeason({ ...isEditingSeason, [item.key]: !isEditingSeason[item.key] });
+                      }}
                       className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/20 group-hover:text-brand-blue transition-colors"
                     >
                       {isEditingSeason[item.key] ? 'Save' : 'Edit'}
@@ -589,11 +643,7 @@ export default function VibeStudioPage() {
                       className="w-full bg-transparent border-b border-brand-blue/30 py-1 text-sm font-serif italic focus:outline-none focus:border-brand-blue text-brand-brown"
                       value={seasonalSuggestions[item.key]}
                       onChange={(e) => {
-                        const newS = { ...seasonalSuggestions, [item.key]: e.target.value };
-                        setSeasonalSuggestions(newS);
-                        saveToGathering({
-                          [item.key === 'menu' ? 'seasonalMenu' : item.key === 'decor' ? 'seasonalAtmosphere' : 'seasonalSoundscape']: e.target.value
-                        });
+                        setSeasonalSuggestions({ ...seasonalSuggestions, [item.key]: e.target.value });
                       }}
                     />
                   ) : (
@@ -619,7 +669,7 @@ export default function VibeStudioPage() {
                 </div>
                 <span className="text-[10px] uppercase tracking-[0.3em] text-brand-pink font-bold">The Ritual</span>
               </div>
-              <button 
+              <button
                 onClick={() => {
                   setSelectedRitualId('skip');
                   saveToGathering({ selectedRitualId: 'skip' });
@@ -629,7 +679,7 @@ export default function VibeStudioPage() {
                 Skip
               </button>
             </div>
-            
+
             <p className="text-sm font-serif text-brand-brown/60 mb-8 leading-relaxed">Select a ritual to ground your evening in intention and connection.</p>
 
             {selectedRitualId !== 'skip' ? (
@@ -644,8 +694,8 @@ export default function VibeStudioPage() {
                         saveToGathering({ selectedRitualId: r.title, customRitualText: r.description });
                       }}
                       className={`w-full text-left p-6 rounded-2xl border transition-all duration-500 group ${
-                        selectedRitualId === r.title 
-                          ? 'bg-brand-pink/5 border-brand-pink shadow-md shadow-brand-pink/10' 
+                        selectedRitualId === r.title
+                          ? 'bg-brand-pink/5 border-brand-pink shadow-md shadow-brand-pink/10'
                           : 'bg-white/50 border-brand-brown/5 hover:border-brand-pink/20 hover:bg-white'
                       }`}
                     >
@@ -666,8 +716,13 @@ export default function VibeStudioPage() {
                   <div className="pt-8 border-t border-brand-brown/5">
                     <div className="flex justify-between items-center mb-6">
                       <span className="text-[10px] uppercase tracking-widest text-brand-pink font-bold">Personalize</span>
-                      <button 
-                        onClick={() => setIsEditingRitual(!isEditingRitual)}
+                      <button
+                        onClick={() => {
+                          if (isEditingRitual) {
+                            saveToGathering({ customRitualText });
+                          }
+                          setIsEditingRitual(!isEditingRitual);
+                        }}
                         className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/40 hover:text-brand-pink transition-colors"
                       >
                         {isEditingRitual ? 'Save' : 'Edit'}
@@ -678,10 +733,7 @@ export default function VibeStudioPage() {
                         className="w-full bg-white/50 border border-brand-brown/10 rounded-xl p-4 text-sm text-brand-brown focus:outline-none focus:ring-2 focus:ring-brand-pink/20 min-h-[100px]"
                         placeholder="Add a personal note or intention for your guests..."
                         value={customRitualText}
-                        onChange={(e) => {
-                          setCustomRitualText(e.target.value);
-                          saveToGathering({ customRitualText: e.target.value });
-                        }}
+                        onChange={(e) => setCustomRitualText(e.target.value)}
                       />
                     ) : (
                       <p className="text-sm font-serif italic text-brand-brown/70 leading-relaxed bg-brand-pink/5 p-4 rounded-xl border border-brand-pink/10">
@@ -694,7 +746,7 @@ export default function VibeStudioPage() {
             ) : (
               <div className="py-12 text-center bg-brand-brown/5 rounded-3xl border border-dashed border-brand-brown/10">
                 <p className="text-sm font-serif italic text-brand-brown/40 mb-6">Ritual skipped for this gathering.</p>
-                <button 
+                <button
                   onClick={() => setSelectedRitualId(null)}
                   className="btn-secondary text-[10px] py-3"
                 >
@@ -715,9 +767,9 @@ export default function VibeStudioPage() {
           </div>
           <span className="text-[10px] uppercase tracking-[0.4em] text-brand-brown/40 mb-4 font-bold">The Supper Edit</span>
           <h1 className="text-6xl mb-16 leading-tight tracking-tighter">{gathering.title}</h1>
-          
+
           <div className="w-12 h-px bg-brand-brown/20 mb-16" />
-          
+
           <div className="space-y-12 w-full">
             <h2 className="text-sm uppercase tracking-[0.3em] font-bold text-brand-pink mb-8">The Tasting Menu</h2>
             <ul className="space-y-10">
