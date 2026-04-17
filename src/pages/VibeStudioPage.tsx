@@ -12,6 +12,7 @@ export default function VibeStudioPage() {
   const [isEditingRitual, setIsEditingRitual] = useState(true);
   const [isEditingDecor, setIsEditingDecor] = useState(false);
   const [isEditingMenu, setIsEditingMenu] = useState(false);
+  const [localMenu, setLocalMenu] = useState<string[]>([]);
   const [menuSaved, setMenuSaved] = useState(false);
   const [isEditingMoodTitle, setIsEditingMoodTitle] = useState(false);
   const [customRitualText, setCustomRitualText] = useState('');
@@ -92,6 +93,12 @@ export default function VibeStudioPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (isEditingMenu && dynamicVibe) {
+      setLocalMenu([...dynamicVibe.menu]);
+    }
+  }, [isEditingMenu]);
+
   const saveToGathering = (updates: Partial<Gathering>) => {
     if (!gathering) return;
     const all = JSON.parse(localStorage.getItem('gatherings') || '[]');
@@ -151,8 +158,9 @@ export default function VibeStudioPage() {
 
   const handleSaveMenu = () => {
     if (!dynamicVibe) return;
-    localStorage.setItem('supperEditMenu', JSON.stringify(dynamicVibe.menu));
-    saveToGathering({ customMenu: dynamicVibe.menu });
+    setDynamicVibe({ ...dynamicVibe, menu: localMenu });
+    localStorage.setItem('supperEditMenu', JSON.stringify(localMenu));
+    saveToGathering({ customMenu: localMenu });
     setMenuSaved(true);
     setTimeout(() => setMenuSaved(false), 2000);
   };
@@ -256,7 +264,7 @@ export default function VibeStudioPage() {
             <AnimatePresence mode="wait">
               {activeTab === 'menu' && (
                 <motion.div
-                  key={`menu-${dynamicVibe.menu.join(',')}`}
+                  key="menu"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -279,14 +287,19 @@ export default function VibeStudioPage() {
                   <div className="flex justify-between items-end border-b border-brand-brown/5 pb-6">
                     <h3 className="text-4xl tracking-tight">The Tasting Edit</h3>
                     <button
-                      onClick={() => setIsEditingMenu(!isEditingMenu)}
+                      onClick={() => {
+                        if (isEditingMenu) {
+                          handleSaveMenu();
+                        }
+                        setIsEditingMenu(!isEditingMenu);
+                      }}
                       className="text-[10px] uppercase tracking-widest font-bold text-brand-brown/40 hover:text-brand-pink transition-colors"
                     >
                       {isEditingMenu ? 'Save' : 'Edit'}
                     </button>
                   </div>
                   <ul className="space-y-6">
-                    {dynamicVibe.menu.map((item, i) => (
+                    {(isEditingMenu ? localMenu : dynamicVibe.menu).map((item, i) => (
                       <motion.li
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -302,9 +315,7 @@ export default function VibeStudioPage() {
                               className="w-full bg-transparent border-b border-brand-brown/10 py-2 text-2xl font-serif italic text-brand-brown/80 focus:outline-none focus:border-brand-pink transition-colors"
                               value={item}
                               onChange={(e) => {
-                                const updated = dynamicVibe.menu.map((m, j) => j === i ? e.target.value : m);
-                                setDynamicVibe({ ...dynamicVibe, menu: updated });
-                                saveToGathering({ customMenu: updated });
+                                setLocalMenu(localMenu.map((m, j) => j === i ? e.target.value : m));
                               }}
                             />
                           ) : (
@@ -317,9 +328,7 @@ export default function VibeStudioPage() {
                         {isEditingMenu && (
                           <button
                             onClick={() => {
-                              const updated = dynamicVibe.menu.filter((_, j) => j !== i);
-                              setDynamicVibe({ ...dynamicVibe, menu: updated });
-                              saveToGathering({ customMenu: updated });
+                              setLocalMenu(localMenu.filter((_, j) => j !== i));
                             }}
                             className="text-brand-brown/20 hover:text-red-400 transition-colors text-xl leading-none flex-none"
                           >
@@ -332,9 +341,7 @@ export default function VibeStudioPage() {
                   {isEditingMenu && (
                     <button
                       onClick={() => {
-                        const updated = [...dynamicVibe.menu, ''];
-                        setDynamicVibe({ ...dynamicVibe, menu: updated });
-                        saveToGathering({ customMenu: updated });
+                        setLocalMenu([...localMenu, '']);
                       }}
                       className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-brown/30 hover:text-brand-pink transition-colors flex items-center gap-2 pt-2"
                     >
